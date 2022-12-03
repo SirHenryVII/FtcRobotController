@@ -121,34 +121,32 @@ public class AutonTestDetectStart extends LinearOpMode {
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm.setTargetPosition(0);
         arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm_fold.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        arm_fold.setTargetPosition(0);
+        arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         /*
          * The INIT-loop:
          * This REPLACES waitForStart!
          */
-        while (!isStarted() && !isStopRequested()) {}
+        while (!isStarted() && !isStopRequested()) {sleep(20);}
 
         runtime.reset();
 
         //Detection
-        while (runtime.seconds() < 3 || tagOfInterest != null) {
+        while (runtime.seconds() < 3 && tagOfInterest == null) {
             ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
 
             if (!currentDetections.isEmpty()) {
-                boolean tagFound = false;
 
                 for (AprilTagDetection tag : currentDetections) {
                     if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
                         tagOfInterest = tag;
-                        tagFound = true;
+                        telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
+                        tagToTelemetry(tagOfInterest);
                         break;
                     }
                 }
-
-                if (tagFound) {
-                    telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
-                    tagToTelemetry(tagOfInterest);
-                } else telemetry.addLine("Tag Detected, but not Left, Middle, or Right :(");
 
             } else telemetry.addLine("Don't see any tags :(");
 
@@ -170,29 +168,38 @@ public class AutonTestDetectStart extends LinearOpMode {
             tagToTelemetry(tagOfInterest);
         } else {
             telemetry.addLine("Tag was not sighted :(");
-            telemetry.addLine("Parking: Left (1)(Default)");
+            telemetry.addLine("Parking: Middle (2) (Default)");
         }
         telemetry.update();
 
-        arm_fold_move(390);
-        while(arm_fold.isBusy()){};
+        double power = 0.8;
+        //Drive Code
+        //Grab Preload
         clawChange(true);
-        drive(0.3, 24, 24);
+        //drive to
+        drive(power, 75, 75);
         arm_move(750);
         arm_fold_move(655);
-        while(arm_fold.isBusy()){};
-        drive(0.3, 3, -3);
+        while(arm_fold.isBusy() && arm.isBusy()){}
+        drive(power, 8, -8);
+        drive(power, 8, 8);
+        sleep(200);
         clawChange(false);
+        sleep(200);
+        drive(power, -8, -8);
+        drive(power, -8, 8);
+        arm_move(0);
+        arm_fold_move(0);
+        drive(power, -35, -35);
 
-
-        if (tagOfInterest.id == LEFT || tagOfInterest == null) {
-            //pass
-        } else if (tagOfInterest.id == MIDDLE) {
-            //pass
-        } else {
-            //pass
+        if(tagOfInterest.id == LEFT){
+            turnLeft();
+            drive(power, 35, 35);
         }
-
+        else{
+            turnRight();
+            drive(power, 35, 35);
+        }
 
     }
 
@@ -251,10 +258,13 @@ public class AutonTestDetectStart extends LinearOpMode {
         rightDrive.setPower(0);
     }
 
+    private void turnRight() {drive(0.6, 12, -12);}
+    private void turnLeft() {drive(0.6, -12, 12);}
+
     private void clawChange(boolean bool){
         if(bool) {
             rightClaw.setPosition(-0.3);
-            leftClaw.setPosition(-0.3);
+            leftClaw.setPosition(0.3);
             return;
         }
 
