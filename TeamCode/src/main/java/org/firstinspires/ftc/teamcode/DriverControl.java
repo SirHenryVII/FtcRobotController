@@ -20,10 +20,7 @@ public class DriverControl extends OpMode
     private Servo rightClaw;
     private Servo leftClaw;
     private DcMotor arm_fold;
-    
-    /*
-     * Code to run ONCE when the driver hits INIT
-     */
+
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
@@ -49,12 +46,9 @@ public class DriverControl extends OpMode
         arm_fold.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm_fold.setTargetPosition(0);
         arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        // DcMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
     }
 
-    /*
-     * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
-     */
     @Override
     public void init_loop() {
     }
@@ -77,24 +71,19 @@ public class DriverControl extends OpMode
         double x;
         double y;
 
+        //Get Joystick Inputs
         x  = gamepad1.right_stick_x;
         y = -gamepad1.right_stick_y;
         // Send calculated power to wheels
         leftDrive.setPower(y + x);
         rightDrive.setPower(y - x);
+
         if(gamepad1.left_bumper) {
-            rightClaw.setPosition(0);
-            leftClaw.setPosition(0.33);
+            clawChange(false);
         }
-        if(gamepad1.right_bumper) {
-            rightClaw.setPosition(0.3);
-            leftClaw.setPosition(-0.3);
-            
+        else if(gamepad1.right_bumper) {
+            clawChange(true);
         }
-        
-        // leftDrive.setPower(y);
-        // rightDrive.setPower(y);
-        
 
         //Arm Move Code
         if(gamepad1.a){
@@ -112,18 +101,19 @@ public class DriverControl extends OpMode
             arm_fold_move(655);
         }
 
-        if(gamepad1.dpad_down){
-            arm_fold_move(arm_fold.getCurrentPosition() + 25);
-        }
-        else if(gamepad1.dpad_up){
-            arm_fold_move(arm_fold.getCurrentPosition() - 25);
-        }
+        //Arm Fold Manual Control
+        if(gamepad1.dpad_down) {arm_fold_move(arm_fold.getCurrentPosition() + 25);}
+        else if(gamepad1.dpad_up) {arm_fold_move(arm_fold.getCurrentPosition() - 25);}
 
-        // Show the elapsed game time and wheel power.
+        //Arm manual control
+        if(gamepad1.dpad_left) {arm_move(arm.getCurrentPosition() + 25);}
+        else if(gamepad1.dpad_right) {arm_move(arm.getCurrentPosition() - 25);}
+
+        //Telemetry Output
         telemetry.addData("Arm_fold", arm_fold.getCurrentPosition());
         telemetry.addData("lclawpos", leftClaw.getPosition());
         telemetry.addData("rclawpos", rightClaw.getPosition());
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Status", "Run Time: " + runtime.milliseconds());
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", x, y);
         telemetry.update();
     }
@@ -141,7 +131,13 @@ public class DriverControl extends OpMode
         arm_fold.setPower(1);
         arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
-
+    private void clawChange(boolean bool) {
+        if (bool) {
+            rightClaw.setPosition(-0.4);
+            leftClaw.setPosition(0.4);
+            return;
+        }
+    }
     @Override
     public void stop() {
     }

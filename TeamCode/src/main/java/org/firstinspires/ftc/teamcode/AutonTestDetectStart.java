@@ -113,10 +113,6 @@ public class AutonTestDetectStart extends LinearOpMode {
         leftDrive.setDirection(DcMotor.Direction.REVERSE);
         rightDrive.setDirection(DcMotor.Direction.FORWARD);
 
-
-        telemetry.addData("Status", "Initialized");
-        telemetry.addData("Delivery", "AndroidStudio");
-
         //Motor Setups
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm.setTargetPosition(0);
@@ -129,25 +125,32 @@ public class AutonTestDetectStart extends LinearOpMode {
          * The INIT-loop:
          * This REPLACES waitForStart!
          */
-        while (!isStarted() && !isStopRequested()) {sleep(20);}
+        telemetry.addLine("Initialization Complete");
+        telemetry.update();
+        while (!isStarted() && !isStopRequested()){}
 
         runtime.reset();
 
         //Detection
         while (runtime.seconds() < 3 && tagOfInterest == null) {
+            //Put Detections into ArrayList
             ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
 
+            //If a detection is found
             if (!currentDetections.isEmpty()) {
 
+                //For every detection (most likely just one)
                 for (AprilTagDetection tag : currentDetections) {
+                    //Check if detection is one of the tags we are looking for
                     if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
+                        //If detection has one of the tags, set "tagOfInterest" to that tag
                         tagOfInterest = tag;
                         telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
                         tagToTelemetry(tagOfInterest);
                         break;
                     }
                 }
-
+            //Else if a detection in not found
             } else telemetry.addLine("Don't see any tags :(");
 
             telemetry.update();
@@ -176,29 +179,41 @@ public class AutonTestDetectStart extends LinearOpMode {
         //Drive Code
         //Grab Preload
         clawChange(true);
-        //drive to
-        drive(power, 75, 75);
+        //drive forward to tall pole
+        drive(power, 70, 70);
+        //Move Arm to Position
         arm_move(750);
         arm_fold_move(655);
-        while(arm_fold.isBusy() && arm.isBusy()){}
-        drive(power, 8, -8);
-        drive(power, 8, 8);
+        //Don't do anything while arm is moving
+        while(arm_fold.isBusy() || arm.isBusy()){}
+        //Further positioning to get preload above pole
+        drive(power, 13, -13);
+        drive(power, 13, 13);
+        //Sleep just to prevent any movement
         sleep(200);
+        //Release preload
         clawChange(false);
-        sleep(200);
-        drive(power, -8, -8);
-        drive(power, -8, 8);
+        //Sleep command because servos are delayed
+        sleep(1000);
+        //Reposition away from pole
+        drive(power, -13, -13);
+        drive(power, -13, 13);
+        //Return arm back to normal position to prepare for driver control innit
         arm_move(0);
         arm_fold_move(0);
+        //Drive back to middle of parking spots
         drive(power, -35, -35);
 
-        if(tagOfInterest.id == LEFT){
-            turnLeft();
-            drive(power, 35, 35);
-        }
-        else{
-            turnRight();
-            drive(power, 35, 35);
+        //Signal Conditions
+        if(tagOfInterest != null){
+            if(tagOfInterest.id == LEFT){
+                turnLeft();
+                drive(power, 35, 35);
+            }
+            else{
+                turnRight();
+                drive(power, 35, 35);
+            }
         }
 
     }
@@ -258,13 +273,13 @@ public class AutonTestDetectStart extends LinearOpMode {
         rightDrive.setPower(0);
     }
 
-    private void turnRight() {drive(0.6, 12, -12);}
-    private void turnLeft() {drive(0.6, -12, 12);}
+    private void turnRight() {drive(0.6, 30, -30);}
+    private void turnLeft() {drive(0.6, -30, 30);}
 
     private void clawChange(boolean bool){
         if(bool) {
-            rightClaw.setPosition(-0.3);
-            leftClaw.setPosition(0.3);
+            rightClaw.setPosition(-0.4);
+            leftClaw.setPosition(0.4);
             return;
         }
 
