@@ -176,6 +176,7 @@ public class AutonTestDetectStart extends LinearOpMode {
         telemetry.update();
 
         double power = 0.8;
+
         //Drive Code
         //Grab Preload
         clawChange(true);
@@ -187,8 +188,8 @@ public class AutonTestDetectStart extends LinearOpMode {
         //Don't do anything while arm is moving
         while(arm_fold.isBusy() || arm.isBusy()){}
         //Further positioning to get preload above pole
-        drive(power, 13, -13);
-        drive(power, 13, 13);
+        drive(power, 15, -15);
+        drive(power, 12, 12);
         //Sleep just to prevent any movement
         sleep(200);
         //Release preload
@@ -196,23 +197,49 @@ public class AutonTestDetectStart extends LinearOpMode {
         //Sleep command because servos are delayed
         sleep(1000);
         //Reposition away from pole
-        drive(power, -13, -13);
-        drive(power, -13, 13);
+        drive(power, -15, -15);
+        drive(power, -12, 12);
+        //Pick up another cone
+        //Lower Arm
+        //arm_move(350);
+        //arm_fold_move(200);
+        //Drive a little forward
+        //drive(power, 15, 15);
+        //Face next cone
+        //turnLeft();
+        //Drive to cone
+        //drive(power, 30, 30);
+        //Close Claw
+        //clawChange(true);
+        //sleep(1000);
+        //Raise Arm
+        //arm_move(750);
+        //arm_fold_move(655);
+        //while(arm_fold.isBusy() || arm.isBusy()){}
+        //Turn around
+        //drive(power, -64, 64);
+        //Drive to Pole
+        //drive(power, 25, 25);
+        //Drop Cone
+        //clawChange(false);
+        //sleep(200);
+        //Turn twoards parking
+        //turnRight();
         //Return arm back to normal position to prepare for driver control innit
         arm_move(0);
         arm_fold_move(0);
         //Drive back to middle of parking spots
-        drive(power, -35, -35);
+        drive(power, -32, -32);
 
         //Signal Conditions
         if(tagOfInterest != null){
             if(tagOfInterest.id == LEFT){
                 turnLeft();
-                drive(power, 35, 35);
+                drive(power, 30, 30);
             }
             else{
                 turnRight();
-                drive(power, 35, 35);
+                drive(power, 30, 30);
             }
         }
 
@@ -273,8 +300,8 @@ public class AutonTestDetectStart extends LinearOpMode {
         rightDrive.setPower(0);
     }
 
-    private void turnRight() {drive(0.6, 30, -30);}
-    private void turnLeft() {drive(0.6, -30, 30);}
+    private void turnRight() {drive(0.6, 28, -28);}
+    private void turnLeft() {drive(0.6, -28, 25);}
 
     private void clawChange(boolean bool){
         if(bool) {
