@@ -157,6 +157,7 @@ public class AutonTestDetectStart extends LinearOpMode {
             sleep(20);
         }
 
+        camera.closeCameraDevice();
 
         if (tagOfInterest != null) {
             switch (tagOfInterest.id) {
@@ -183,13 +184,13 @@ public class AutonTestDetectStart extends LinearOpMode {
         //drive forward to tall pole
         drive(power, 70, 70);
         //Move Arm to Position
-        arm_move(750);
+        arm_move(775);
         arm_fold_move(655);
         //Don't do anything while arm is moving
         while(arm_fold.isBusy() || arm.isBusy()){}
         //Further positioning to get preload above pole
-        drive(power, 15, -15);
-        drive(power, 12, 12);
+        drive(power, 11.5, -11.5);
+        drive(power, 8.5, 8.5);
         //Sleep just to prevent any movement
         sleep(200);
         //Release preload
@@ -197,8 +198,8 @@ public class AutonTestDetectStart extends LinearOpMode {
         //Sleep command because servos are delayed
         sleep(1000);
         //Reposition away from pole
-        drive(power, -15, -15);
-        drive(power, -12, 12);
+        drive(power, -8.5, -8.5);
+        drive(power, -11.5, 11.5);
         //Pick up another cone
         //Lower Arm
         //arm_move(350);
@@ -300,8 +301,8 @@ public class AutonTestDetectStart extends LinearOpMode {
         rightDrive.setPower(0);
     }
 
-    private void turnRight() {drive(0.6, 28, -28);}
-    private void turnLeft() {drive(0.6, -28, 25);}
+    private void turnRight() {drive(0.6, 35, -35);}
+    private void turnLeft() {drive(0.6, -35, 35);}
 
     private void clawChange(boolean bool){
         if(bool) {
@@ -311,7 +312,7 @@ public class AutonTestDetectStart extends LinearOpMode {
         }
 
         rightClaw.setPosition(0);
-        leftClaw.setPosition(0);
+        leftClaw.setPosition(-0.4);
     }
 
 }
