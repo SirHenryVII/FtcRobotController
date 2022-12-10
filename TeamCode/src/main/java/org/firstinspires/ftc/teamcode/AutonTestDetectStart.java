@@ -236,7 +236,7 @@ public class AutonTestDetectStart extends LinearOpMode {
         if(tagOfInterest != null){
             if(tagOfInterest.id == LEFT){
                 turnLeft();
-                drive(power, 30, 30);
+                drive(power, 33, 33);
             }
             else{
                 turnRight();
