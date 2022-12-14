@@ -37,8 +37,8 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.util.ArrayList;
 
-@Autonomous(name="Auton (Detect)")
-public class AutonTestDetectStart extends LinearOpMode {
+@Autonomous(name="Auton (Wall Right)")
+public class WallRight extends LinearOpMode {
     //Innit Global Variables
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
@@ -127,7 +127,7 @@ public class AutonTestDetectStart extends LinearOpMode {
          */
         telemetry.addLine("Initialization Complete");
         telemetry.update();
-        while (!isStarted() && !isStopRequested()){}
+        while (!isStarted() && !isStopRequested());
 
         runtime.reset();
 
@@ -145,8 +145,6 @@ public class AutonTestDetectStart extends LinearOpMode {
                     if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
                         //If detection has one of the tags, set "tagOfInterest" to that tag
                         tagOfInterest = tag;
-                        telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
-                        tagToTelemetry(tagOfInterest);
                         break;
                     }
                 }
@@ -154,7 +152,6 @@ public class AutonTestDetectStart extends LinearOpMode {
             } else telemetry.addLine("Don't see any tags :(");
 
             telemetry.update();
-            sleep(20);
         }
 
         camera.closeCameraDevice();
@@ -189,43 +186,45 @@ public class AutonTestDetectStart extends LinearOpMode {
         //Don't do anything while arm is moving
         while(arm_fold.isBusy() || arm.isBusy()){}
         //Further positioning to get preload above pole
-        drive(power, 11.5, -11.5);
-        drive(power, 8.5, 8.5);
-        //Sleep just to prevent any movement
-        sleep(200);
+        drive(power, -14.5, 14.5);
+        drive(power, 6.5, 6.5);
         //Release preload
         clawChange(false);
         //Sleep command because servos are delayed
-        sleep(1000);
+        WaitMS(1000);
         //Reposition away from pole
-        drive(power, -8.5, -8.5);
-        drive(power, -11.5, 11.5);
+        drive(power, -6.5, -6.5);
+        drive(power, 14.5, -14.5);
+
+        /*
         //Pick up another cone
         //Lower Arm
-        //arm_move(350);
-        //arm_fold_move(200);
+        arm_move(350);
+        arm_fold_move(200);
         //Drive a little forward
-        //drive(power, 15, 15);
+        drive(power, 15, 15);
         //Face next cone
-        //turnLeft();
+        turnLeft();
         //Drive to cone
-        //drive(power, 30, 30);
+        drive(power, 30, 30);
         //Close Claw
-        //clawChange(true);
-        //sleep(1000);
+        clawChange(true);
+        sleep(1000);
         //Raise Arm
-        //arm_move(750);
-        //arm_fold_move(655);
-        //while(arm_fold.isBusy() || arm.isBusy()){}
+        arm_move(750);
+        arm_fold_move(655);
+        while(arm_fold.isBusy() || arm.isBusy()){}
         //Turn around
-        //drive(power, -64, 64);
+        drive(power, -64, 64);
         //Drive to Pole
-        //drive(power, 25, 25);
+        drive(power, 25, 25);
         //Drop Cone
-        //clawChange(false);
-        //sleep(200);
+        clawChange(false);
+        sleep(200);
         //Turn twoards parking
-        //turnRight();
+        turnRight();
+        */
+
         //Return arm back to normal position to prepare for driver control innit
         arm_move(0);
         arm_fold_move(0);
@@ -236,13 +235,15 @@ public class AutonTestDetectStart extends LinearOpMode {
         if(tagOfInterest != null){
             if(tagOfInterest.id == LEFT){
                 turnLeft();
-                drive(power, 33, 33);
+                drive(power, 38, 38);
             }
-            else{
+            else if(tagOfInterest.id == RIGHT){
                 turnRight();
-                drive(power, 30, 30);
+                drive(power, 38, 38);
             }
         }
+
+        while(arm.isBusy() || arm_fold.isBusy()){}
 
     }
 
@@ -301,8 +302,13 @@ public class AutonTestDetectStart extends LinearOpMode {
         rightDrive.setPower(0);
     }
 
-    private void turnRight() {drive(0.6, 35, -35);}
-    private void turnLeft() {drive(0.6, -35, 35);}
+    private void turnRight() {drive(0.6, 32, -32);}
+    private void turnLeft() {drive(0.6, -30, 30);}
+
+    private void WaitMS(double s){
+        double tempNum = runtime.milliseconds();
+        while(tempNum + s > runtime.milliseconds()){}
+    }
 
     private void clawChange(boolean bool){
         if(bool) {
