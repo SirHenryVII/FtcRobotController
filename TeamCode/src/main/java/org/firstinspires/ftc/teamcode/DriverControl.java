@@ -86,15 +86,21 @@ public class DriverControl extends OpMode
         }
 
         //Arm Move Code
-        if(gamepad1.a){
+        if(gamepad1.start){
             arm_move(0);
-            arm_fold_move(390);
+            arm_fold_move(0);
+        }
+        else if(gamepad1.a){
+            arm_move(0);
+            arm_fold_move(388);
         }
         else if(gamepad1.b){
-            arm_move(175);
+            arm_move(420);
+            arm_fold_move(610);
         }
         else if(gamepad1.y){
-            arm_move(250);
+            arm_move(550);
+            arm_fold_move(590);
         }
         else if(gamepad1.x){
             arm_move(750);
@@ -137,6 +143,8 @@ public class DriverControl extends OpMode
             leftClaw.setPosition(0.4);
             return;
         }
+        rightClaw.setPosition(0);
+        leftClaw.setPosition(0);
     }
     @Override
     public void stop() {

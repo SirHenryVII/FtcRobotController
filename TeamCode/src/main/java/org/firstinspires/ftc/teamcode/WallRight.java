@@ -127,51 +127,64 @@ public class WallRight extends LinearOpMode {
          */
         telemetry.addLine("Initialization Complete");
         telemetry.update();
-        while (!isStarted() && !isStopRequested());
+        while (!isStarted() && !isStopRequested()) ;
 
         runtime.reset();
 
         //Detection
-        while (runtime.seconds() < 3 && tagOfInterest == null) {
-            //Put Detections into ArrayList
-            ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
+        boolean detectionPassed = false;
 
-            //If a detection is found
-            if (!currentDetections.isEmpty()) {
+        while (!detectionPassed) {
+            try {
+                while (runtime.seconds() < 3 && tagOfInterest == null) {
+                    //Put Detections into ArrayList
+                    ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
 
-                //For every detection (most likely just one)
-                for (AprilTagDetection tag : currentDetections) {
-                    //Check if detection is one of the tags we are looking for
-                    if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
-                        //If detection has one of the tags, set "tagOfInterest" to that tag
-                        tagOfInterest = tag;
-                        break;
+                    //If a detection is found
+                    if (!currentDetections.isEmpty()) {
+
+                        //For every detection (most likely just one)
+                        for (AprilTagDetection tag : currentDetections) {
+                            //Check if detection is one of the tags we are looking for
+
+                            if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
+                                //If detection has one of the tags, set "tagOfInterest" to that tag
+                                tagOfInterest = tag;
+                                break;
+                            }
+                        }
+                        //Else if a detection in not found
+                    } else telemetry.addLine("Don't see any tags :(");
+
+                    telemetry.update();
+                    camera.closeCameraDevice();
+
+                    if (tagOfInterest != null) {
+                        switch (tagOfInterest.id) {
+                            case LEFT:
+                                telemetry.addLine("Parking: Left (1)");
+                            case MIDDLE:
+                                telemetry.addLine("Parking: Middle (2)");
+                            case RIGHT:
+                                telemetry.addLine("Parking: Right (3)");
+                        }
+                        telemetry.addLine("Tag snapshot:\n");
+                        tagToTelemetry(tagOfInterest);
+                    } else {
+                        telemetry.addLine("Tag was not sighted :(");
+                        telemetry.addLine("Parking: Middle (2) (Default)");
                     }
+
+                    detectionPassed = true;
                 }
-            //Else if a detection in not found
-            } else telemetry.addLine("Don't see any tags :(");
+            } catch (Throwable ignored) {
+                telemetry.addLine("Tag crashed, let's try again!");
+            }
 
             telemetry.update();
+            sleep(20);
         }
 
-        camera.closeCameraDevice();
-
-        if (tagOfInterest != null) {
-            switch (tagOfInterest.id) {
-                case LEFT:
-                    telemetry.addLine("Parking: Left (1)");
-                case MIDDLE:
-                    telemetry.addLine("Parking: Middle (2)");
-                case RIGHT:
-                    telemetry.addLine("Parking: Right (3)");
-            }
-            telemetry.addLine("Tag snapshot:\n");
-            tagToTelemetry(tagOfInterest);
-        } else {
-            telemetry.addLine("Tag was not sighted :(");
-            telemetry.addLine("Parking: Middle (2) (Default)");
-        }
-        telemetry.update();
 
         double power = 0.8;
 
@@ -181,7 +194,7 @@ public class WallRight extends LinearOpMode {
         //drive forward to tall pole
         drive(power, 70, 70);
         //Move Arm to Position
-        arm_move(775);
+        arm_move(760);
         arm_fold_move(655);
         //Don't do anything while arm is moving
         while(arm_fold.isBusy() || arm.isBusy()){}
@@ -191,7 +204,7 @@ public class WallRight extends LinearOpMode {
         //Release preload
         clawChange(false);
         //Sleep command because servos are delayed
-        WaitMS(1000);
+        sleep(1000);
         //Reposition away from pole
         drive(power, -6.5, -6.5);
         drive(power, 14.5, -14.5);
@@ -304,11 +317,6 @@ public class WallRight extends LinearOpMode {
 
     private void turnRight() {drive(0.6, 32, -32);}
     private void turnLeft() {drive(0.6, -30, 30);}
-
-    private void WaitMS(double s){
-        double tempNum = runtime.milliseconds();
-        while(tempNum + s > runtime.milliseconds()){}
-    }
 
     private void clawChange(boolean bool){
         if(bool) {

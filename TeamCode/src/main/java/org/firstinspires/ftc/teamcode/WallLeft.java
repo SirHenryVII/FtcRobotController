@@ -37,7 +37,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.util.ArrayList;
 
-@Autonomous(name="Auton (Wall Left)")
+@Autonomous(name = "Auton (Wall Left)")
 public class WallLeft extends LinearOpMode {
     //Innit Global Variables
     OpenCvCamera camera;
@@ -127,52 +127,66 @@ public class WallLeft extends LinearOpMode {
          */
         telemetry.addLine("Initialization Complete");
         telemetry.update();
-        while (!isStarted() && !isStopRequested()){sleep(20);}
+        while (!isStarted() && !isStopRequested()) {
+            sleep(20);
+        }
 
         runtime.reset();
 
         //Detection
-        while (runtime.seconds() < 3 && tagOfInterest == null) {
-            //Put Detections into ArrayList
-            ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
+        boolean detectionPassed = false;
 
-            //If a detection is found
-            if (!currentDetections.isEmpty()) {
+        while (!detectionPassed) {
+            try {
+                while (runtime.seconds() < 3 && tagOfInterest == null) {
+                    //Put Detections into ArrayList
+                    ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
 
-                //For every detection (most likely just one)
-                for (AprilTagDetection tag : currentDetections) {
-                    //Check if detection is one of the tags we are looking for
-                    if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
-                        //If detection has one of the tags, set "tagOfInterest" to that tag
-                        tagOfInterest = tag;
-                        break;
-                    }
+                    //If a detection is found
+                    if (!currentDetections.isEmpty()) {
+
+                        //For every detection (most likely just one)
+                        for (AprilTagDetection tag : currentDetections) {
+                            //Check if detection is one of the tags we are looking for
+                            if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
+                                //If detection has one of the tags, set "tagOfInterest" to that tag
+                                tagOfInterest = tag;
+                                break;
+                            }
+                        }
+                        //Else if a detection in not found
+                    } else telemetry.addLine("Don't see any tags :(");
+
+                    telemetry.update();
+                    sleep(20);
                 }
-            //Else if a detection in not found
-            } else telemetry.addLine("Don't see any tags :(");
+
+                camera.closeCameraDevice();
+
+                if (tagOfInterest != null) {
+                    switch (tagOfInterest.id) {
+                        case LEFT:
+                            telemetry.addLine("Parking: Left (1)");
+                        case MIDDLE:
+                            telemetry.addLine("Parking: Middle (2)");
+                        case RIGHT:
+                            telemetry.addLine("Parking: Right (3)");
+                    }
+                    telemetry.addLine("Tag snapshot:\n");
+                    tagToTelemetry(tagOfInterest);
+                } else {
+                    telemetry.addLine("Tag was not sighted :(");
+                    telemetry.addLine("Parking: Middle (2) (Default)");
+                }
+                detectionPassed = true;
+
+            } catch (Throwable ignored) {
+                telemetry.addLine("Tag crashed, let's try again!");
+            }
 
             telemetry.update();
             sleep(20);
         }
-
-        camera.closeCameraDevice();
-
-        if (tagOfInterest != null) {
-            switch (tagOfInterest.id) {
-                case LEFT:
-                    telemetry.addLine("Parking: Left (1)");
-                case MIDDLE:
-                    telemetry.addLine("Parking: Middle (2)");
-                case RIGHT:
-                    telemetry.addLine("Parking: Right (3)");
-            }
-            telemetry.addLine("Tag snapshot:\n");
-            tagToTelemetry(tagOfInterest);
-        } else {
-            telemetry.addLine("Tag was not sighted :(");
-            telemetry.addLine("Parking: Middle (2) (Default)");
-        }
-        telemetry.update();
 
         double power = 0.8;
 
@@ -182,13 +196,14 @@ public class WallLeft extends LinearOpMode {
         //drive forward to tall pole
         drive(power, 70, 70);
         //Move Arm to Position
-        arm_move(775);
+        arm_move(760);
         arm_fold_move(655);
         //Don't do anything while arm is moving
-        while(arm_fold.isBusy() || arm.isBusy()){}
+        while (arm_fold.isBusy() || arm.isBusy()) {
+        }
         //Further positioning to get preload above pole
         drive(power, 11.5, -11.5);
-        drive(power, 8.5, 8.5);
+        drive(power, 8, 8);
         //Sleep just to prevent any movement
         sleep(200);
         //Release preload
@@ -235,18 +250,19 @@ public class WallLeft extends LinearOpMode {
         drive(power, -32, -32);
 
         //Signal Conditions
-        if(tagOfInterest != null){
-            if(tagOfInterest.id == LEFT){
+        if (tagOfInterest != null) {
+            if (tagOfInterest.id == LEFT) {
                 turnLeft();
                 drive(power, 38, 38);
-            }
-            else if(tagOfInterest.id == RIGHT){
+            } else if (tagOfInterest.id == RIGHT) {
                 turnRight();
                 drive(power, 38, 38);
             }
         }
 
-        while(arm.isBusy() || arm_fold.isBusy()){sleep(20);}
+        while (arm.isBusy() || arm_fold.isBusy()) {
+            sleep(20);
+        }
 
     }
 
@@ -297,7 +313,8 @@ public class WallLeft extends LinearOpMode {
             rightDrive.setPower(power);
 
             // wait until both motors are no longer busy running to position
-            while (opModeIsActive() && (leftDrive.isBusy() || rightDrive.isBusy())) {}
+            while (opModeIsActive() && (leftDrive.isBusy() || rightDrive.isBusy())) {
+            }
         }
 
         // set motor power back to 0
@@ -305,11 +322,16 @@ public class WallLeft extends LinearOpMode {
         rightDrive.setPower(0);
     }
 
-    private void turnRight() {drive(0.6, 32, -32);}
-    private void turnLeft() {drive(0.6, -30, 30);}
+    private void turnRight() {
+        drive(0.6, 32, -32);
+    }
 
-    private void clawChange(boolean bool){
-        if(bool) {
+    private void turnLeft() {
+        drive(0.6, -32, 32);
+    }
+
+    private void clawChange(boolean bool) {
+        if (bool) {
             rightClaw.setPosition(-0.4);
             leftClaw.setPosition(0.4);
             return;
