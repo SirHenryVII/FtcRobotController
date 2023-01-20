@@ -26,7 +26,9 @@ import android.annotation.SuppressLint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -121,12 +123,15 @@ public class WallLeft extends LinearOpMode {
         arm_fold.setTargetPosition(0);
         arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
+
+
         /*
          * The INIT-loop:
          * This REPLACES waitForStart!
          */
         telemetry.addLine("Initialization Complete");
         telemetry.update();
+
         while (!isStarted() && !isStopRequested()) {
             sleep(20);
         }
@@ -196,8 +201,8 @@ public class WallLeft extends LinearOpMode {
         //drive forward to tall pole
         drive(power, 70, 70);
         //Move Arm to Position
-        arm_move(760);
-        arm_fold_move(655);
+        arm_move(750);
+        arm_fold_move(613);
         //Don't do anything while arm is moving
         while (arm_fold.isBusy() || arm.isBusy()) {
         }
@@ -211,7 +216,7 @@ public class WallLeft extends LinearOpMode {
         //Sleep command because servos are delayed
         sleep(1000);
         //Reposition away from pole
-        drive(power, -8.5, -8.5);
+        drive(power, -8, -8);
         drive(power, -11.5, 11.5);
 
         /*
@@ -247,7 +252,7 @@ public class WallLeft extends LinearOpMode {
         arm_move(0);
         arm_fold_move(0);
         //Drive back to middle of parking spots
-        drive(power, -32, -32);
+        drive(power, -30, -30);
 
         //Signal Conditions
         if (tagOfInterest != null) {
@@ -295,26 +300,24 @@ public class WallLeft extends LinearOpMode {
         int rightTarget;
         int leftTarget;
 
-        if (opModeIsActive()) {
-            // Create target positions
-            rightTarget = rightDrive.getCurrentPosition() + (int) (rightInches * DRIVE_COUNTS_PER_IN);
-            leftTarget = leftDrive.getCurrentPosition() + (int) (leftInches * DRIVE_COUNTS_PER_IN);
+        // Create target positions
+        rightTarget = rightDrive.getCurrentPosition() + (int) (rightInches * DRIVE_COUNTS_PER_IN);
+        leftTarget = leftDrive.getCurrentPosition() + (int) (leftInches * DRIVE_COUNTS_PER_IN);
 
-            // set target position
-            leftDrive.setTargetPosition(leftTarget);
-            rightDrive.setTargetPosition(rightTarget);
+        // set target position
+        leftDrive.setTargetPosition(leftTarget);
+        rightDrive.setTargetPosition(rightTarget);
 
-            //switch to run to position mode
-            leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //switch to run to position mode
+        leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-            //run to position at the designated power
-            leftDrive.setPower(power);
-            rightDrive.setPower(power);
+        //run to position at the designated power
+        leftDrive.setPower(power);
+        rightDrive.setPower(power);
 
-            // wait until both motors are no longer busy running to position
-            while (opModeIsActive() && (leftDrive.isBusy() || rightDrive.isBusy())) {
-            }
+        // wait until both motors are no longer busy running to position
+        while (opModeIsActive() && (leftDrive.isBusy() || rightDrive.isBusy())) {
         }
 
         // set motor power back to 0
@@ -327,7 +330,7 @@ public class WallLeft extends LinearOpMode {
     }
 
     private void turnLeft() {
-        drive(0.6, -32, 32);
+        drive(0.6, -33, 33);
     }
 
     private void clawChange(boolean bool) {

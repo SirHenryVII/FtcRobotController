@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -32,8 +33,8 @@ public class DriverControl extends OpMode
         arm = hardwareMap.get(DcMotor.class, "arm");
         arm_fold = hardwareMap.get(DcMotor.class, "arm_fold");
 
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightDrive.setDirection(DcMotor.Direction.REVERSE);
 
 
         telemetry.addData("Status", "Initialized");
@@ -66,17 +67,9 @@ public class DriverControl extends OpMode
      */
     @Override
     public void loop() {
-        // Setup a variable for each drive wheel to save power level for telemetry
-
-        double x;
-        double y;
-
-        //Get Joystick Inputs
-        x  = gamepad1.right_stick_x;
-        y = -gamepad1.right_stick_y;
         // Send calculated power to wheels
-        leftDrive.setPower(y + x);
-        rightDrive.setPower(y - x);
+        leftDrive.setPower(gamepad1.left_stick_y);
+        rightDrive.setPower(gamepad1.right_stick_y);
 
         if(gamepad1.left_bumper) {
             clawChange(false);
@@ -104,7 +97,7 @@ public class DriverControl extends OpMode
         }
         else if(gamepad1.x){
             arm_move(750);
-            arm_fold_move(655);
+            arm_fold_move(615);
         }
 
         //Arm Fold Manual Control
@@ -120,7 +113,6 @@ public class DriverControl extends OpMode
         telemetry.addData("lclawpos", leftClaw.getPosition());
         telemetry.addData("rclawpos", rightClaw.getPosition());
         telemetry.addData("Status", "Run Time: " + runtime.milliseconds());
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", x, y);
         telemetry.update();
     }
 

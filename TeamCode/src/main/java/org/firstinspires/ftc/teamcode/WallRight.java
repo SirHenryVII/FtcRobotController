@@ -26,6 +26,7 @@ import android.annotation.SuppressLint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -110,7 +111,7 @@ public class WallRight extends LinearOpMode {
         arm = hardwareMap.get(DcMotor.class, "arm");
         arm_fold = hardwareMap.get(DcMotor.class, "arm_fold");
 
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftDrive.setDirection(DcMotor.Direction.FORWARD);
         rightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         //Motor Setups
@@ -146,7 +147,6 @@ public class WallRight extends LinearOpMode {
                         //For every detection (most likely just one)
                         for (AprilTagDetection tag : currentDetections) {
                             //Check if detection is one of the tags we are looking for
-
                             if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
                                 //If detection has one of the tags, set "tagOfInterest" to that tag
                                 tagOfInterest = tag;
@@ -157,26 +157,28 @@ public class WallRight extends LinearOpMode {
                     } else telemetry.addLine("Don't see any tags :(");
 
                     telemetry.update();
-                    camera.closeCameraDevice();
-
-                    if (tagOfInterest != null) {
-                        switch (tagOfInterest.id) {
-                            case LEFT:
-                                telemetry.addLine("Parking: Left (1)");
-                            case MIDDLE:
-                                telemetry.addLine("Parking: Middle (2)");
-                            case RIGHT:
-                                telemetry.addLine("Parking: Right (3)");
-                        }
-                        telemetry.addLine("Tag snapshot:\n");
-                        tagToTelemetry(tagOfInterest);
-                    } else {
-                        telemetry.addLine("Tag was not sighted :(");
-                        telemetry.addLine("Parking: Middle (2) (Default)");
-                    }
-
-                    detectionPassed = true;
+                    sleep(20);
                 }
+
+                camera.closeCameraDevice();
+
+                if (tagOfInterest != null) {
+                    switch (tagOfInterest.id) {
+                        case LEFT:
+                            telemetry.addLine("Parking: Left (1)");
+                        case MIDDLE:
+                            telemetry.addLine("Parking: Middle (2)");
+                        case RIGHT:
+                            telemetry.addLine("Parking: Right (3)");
+                    }
+                    telemetry.addLine("Tag snapshot:\n");
+                    tagToTelemetry(tagOfInterest);
+                } else {
+                    telemetry.addLine("Tag was not sighted :(");
+                    telemetry.addLine("Parking: Middle (2) (Default)");
+                }
+                detectionPassed = true;
+
             } catch (Throwable ignored) {
                 telemetry.addLine("Tag crashed, let's try again!");
             }
@@ -199,15 +201,15 @@ public class WallRight extends LinearOpMode {
         //Don't do anything while arm is moving
         while(arm_fold.isBusy() || arm.isBusy()){}
         //Further positioning to get preload above pole
-        drive(power, -14.5, 14.5);
-        drive(power, 6.5, 6.5);
+        drive(power, -14, 14);
+        drive(power, 6, 6);
         //Release preload
         clawChange(false);
         //Sleep command because servos are delayed
         sleep(1000);
         //Reposition away from pole
-        drive(power, -6.5, -6.5);
-        drive(power, 14.5, -14.5);
+        drive(power, -6, -6);
+        drive(power, 14, -14);
 
         /*
         //Pick up another cone
@@ -248,7 +250,7 @@ public class WallRight extends LinearOpMode {
         if(tagOfInterest != null){
             if(tagOfInterest.id == LEFT){
                 turnLeft();
-                drive(power, 38, 38);
+                drive(power, 35, 35);
             }
             else if(tagOfInterest.id == RIGHT){
                 turnRight();
@@ -316,7 +318,7 @@ public class WallRight extends LinearOpMode {
     }
 
     private void turnRight() {drive(0.6, 32, -32);}
-    private void turnLeft() {drive(0.6, -30, 30);}
+    private void turnLeft() {drive(0.6, -32, 32);}
 
     private void clawChange(boolean bool){
         if(bool) {
