@@ -201,13 +201,13 @@ public class WallLeft extends LinearOpMode {
         //drive forward to tall pole
         drive(power, 70, 70);
         //Move Arm to Position
-        arm_move(750);
-        arm_fold_move(613);
+        arm_move(760);
+        arm_fold_move(655);
         //Don't do anything while arm is moving
         while (arm_fold.isBusy() || arm.isBusy()) {
         }
         //Further positioning to get preload above pole
-        drive(power, 11.5, -11.5);
+        drive(power, 12, -12);
         drive(power, 8, 8);
         //Sleep just to prevent any movement
         sleep(200);
@@ -216,8 +216,8 @@ public class WallLeft extends LinearOpMode {
         //Sleep command because servos are delayed
         sleep(1000);
         //Reposition away from pole
-        drive(power, -8, -8);
-        drive(power, -11.5, 11.5);
+        drive(power, -7.8, -7.8);
+        drive(power, -12, 12);
 
         /*
         //Pick up another cone
@@ -258,10 +258,10 @@ public class WallLeft extends LinearOpMode {
         if (tagOfInterest != null) {
             if (tagOfInterest.id == LEFT) {
                 turnLeft();
-                drive(power, 38, 38);
+                drive(power, 36, 36);
             } else if (tagOfInterest.id == RIGHT) {
                 turnRight();
-                drive(power, 38, 38);
+                drive(power, 36, 36);
             }
         }
 
@@ -300,24 +300,25 @@ public class WallLeft extends LinearOpMode {
         int rightTarget;
         int leftTarget;
 
-        // Create target positions
-        rightTarget = rightDrive.getCurrentPosition() + (int) (rightInches * DRIVE_COUNTS_PER_IN);
-        leftTarget = leftDrive.getCurrentPosition() + (int) (leftInches * DRIVE_COUNTS_PER_IN);
+        if (opModeIsActive()) {
+            // Create target positions
+            rightTarget = rightDrive.getCurrentPosition() + (int) (rightInches * DRIVE_COUNTS_PER_IN);
+            leftTarget = leftDrive.getCurrentPosition() + (int) (leftInches * DRIVE_COUNTS_PER_IN);
 
-        // set target position
-        leftDrive.setTargetPosition(leftTarget);
-        rightDrive.setTargetPosition(rightTarget);
+            // set target position
+            leftDrive.setTargetPosition(leftTarget);
+            rightDrive.setTargetPosition(rightTarget);
 
-        //switch to run to position mode
-        leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            //switch to run to position mode
+            leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        //run to position at the designated power
-        leftDrive.setPower(power);
-        rightDrive.setPower(power);
+            //run to position at the designated power
+            leftDrive.setPower(power);
+            rightDrive.setPower(power);
 
-        // wait until both motors are no longer busy running to position
-        while (opModeIsActive() && (leftDrive.isBusy() || rightDrive.isBusy())) {
+            // wait until both motors are no longer busy running to position
+            while (opModeIsActive() && (leftDrive.isBusy() || rightDrive.isBusy())) {}
         }
 
         // set motor power back to 0

@@ -111,7 +111,7 @@ public class WallRight extends LinearOpMode {
         arm = hardwareMap.get(DcMotor.class, "arm");
         arm_fold = hardwareMap.get(DcMotor.class, "arm_fold");
 
-        leftDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftDrive.setDirection(DcMotor.Direction.REVERSE);
         rightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         //Motor Setups
@@ -318,7 +318,7 @@ public class WallRight extends LinearOpMode {
     }
 
     private void turnRight() {drive(0.6, 32, -32);}
-    private void turnLeft() {drive(0.6, -32, 32);}
+    private void turnLeft() {drive(0.6, -33, 33);}
 
     private void clawChange(boolean bool){
         if(bool) {
