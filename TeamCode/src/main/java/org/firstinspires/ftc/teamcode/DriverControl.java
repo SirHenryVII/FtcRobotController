@@ -83,6 +83,14 @@ public class DriverControl extends OpMode
             arm_move(0);
             arm_fold_move(0);
         }
+        else if(gamepad1.back) {
+            arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            arm.setTargetPosition(0);
+            arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            arm_fold.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            arm_fold.setTargetPosition(0);
+            arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        }
         else if(gamepad1.a){
             arm_move(0);
             arm_fold_move(388);

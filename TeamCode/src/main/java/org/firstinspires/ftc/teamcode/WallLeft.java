@@ -219,34 +219,7 @@ public class WallLeft extends LinearOpMode {
         drive(power, -7.8, -7.8);
         drive(power, -12, 12);
 
-        /*
-        //Pick up another cone
-        //Lower Arm
-        arm_move(350);
-        arm_fold_move(200);
-        //Drive a little forward
-        drive(power, 15, 15);
-        //Face next cone
-        turnLeft();
-        //Drive to cone
-        drive(power, 30, 30);
-        //Close Claw
-        clawChange(true);
-        sleep(1000);
-        //Raise Arm
-        arm_move(750);
-        arm_fold_move(655);
-        while(arm_fold.isBusy() || arm.isBusy()){}
-        //Turn around
-        drive(power, -64, 64);
-        //Drive to Pole
-        drive(power, 25, 25);
-        //Drop Cone
-        clawChange(false);
-        sleep(200);
-        //Turn twoards parking
-        turnRight();
-        */
+        afterQual();
 
         //Return arm back to normal position to prepare for driver control innit
         arm_move(0);
@@ -343,6 +316,37 @@ public class WallLeft extends LinearOpMode {
 
         rightClaw.setPosition(0);
         leftClaw.setPosition(-0.4);
+    }
+
+    public void afterQual() {
+                /*
+        //Pick up another cone
+        //Lower Arm
+        arm_move(350);
+        arm_fold_move(200);
+        //Drive a little forward
+        drive(power, 15, 15);
+        //Face next cone
+        turnLeft();
+        //Drive to cone
+        drive(power, 30, 30);
+        //Close Claw
+        clawChange(true);
+        sleep(1000);
+        //Raise Arm
+        arm_move(750);
+        arm_fold_move(655);
+        while(arm_fold.isBusy() || arm.isBusy()){}
+        //Turn around
+        drive(power, -64, 64);
+        //Drive to Pole
+        drive(power, 25, 25);
+        //Drop Cone
+        clawChange(false);
+        sleep(200);
+        //Turn twoards parking
+        turnRight();
+        */
     }
 
 }
