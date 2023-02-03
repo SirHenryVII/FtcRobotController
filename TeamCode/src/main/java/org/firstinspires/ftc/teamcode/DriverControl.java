@@ -74,7 +74,7 @@ public class DriverControl extends OpMode
         if(gamepad1.left_bumper) {
             clawChange(false);
         }
-        else if(gamepad1.right_bumper) {
+        if(gamepad1.right_bumper) {
             clawChange(true);
         }
 

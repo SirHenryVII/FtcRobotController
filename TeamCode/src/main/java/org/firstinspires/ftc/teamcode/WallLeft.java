@@ -47,7 +47,8 @@ public class WallLeft extends LinearOpMode {
 
     private DcMotor leftDrive;
     private DcMotor rightDrive;
-    private DcMotor arm;
+    private DcMotor leftArm;
+    private DcMotor rightArm;
     private Servo rightClaw;
     private Servo leftClaw;
     private DcMotor arm_fold;
@@ -109,16 +110,20 @@ public class WallLeft extends LinearOpMode {
         rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
         rightClaw = hardwareMap.get(Servo.class, "left-claw");
         leftClaw = hardwareMap.get(Servo.class, "right-claw");
-        arm = hardwareMap.get(DcMotor.class, "arm");
+        leftArm = hardwareMap.get(DcMotor.class, "left-arm");
+        rightArm = hardwareMap.get(DcMotor.class, "right-arm");
         arm_fold = hardwareMap.get(DcMotor.class, "arm_fold");
 
         leftDrive.setDirection(DcMotor.Direction.REVERSE);
         rightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         //Motor Setups
-        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        arm.setTargetPosition(0);
-        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        leftArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftArm.setTargetPosition(0);
+        rightArm.setTargetPosition(0);
+        leftArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         arm_fold.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm_fold.setTargetPosition(0);
         arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -204,7 +209,7 @@ public class WallLeft extends LinearOpMode {
         arm_move(760);
         arm_fold_move(655);
         //Don't do anything while arm is moving
-        while (arm_fold.isBusy() || arm.isBusy()) {
+        while (arm_fold.isBusy() || isBusy()) {
         }
         //Further positioning to get preload above pole
         drive(power, 12, -12);
@@ -238,7 +243,7 @@ public class WallLeft extends LinearOpMode {
             }
         }
 
-        while (arm.isBusy() || arm_fold.isBusy()) {
+        while (isBusy() || arm_fold.isBusy()) {
             sleep(20);
         }
 
@@ -246,15 +251,22 @@ public class WallLeft extends LinearOpMode {
 
     // Utility Functions
     private void arm_move(int target) {
-        arm.setTargetPosition(target);
-        arm.setPower(1);
-        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        leftArm.setTargetPosition(target);
+        rightArm.setTargetPosition(-target);
+        leftArm.setPower(1);
+        rightArm.setPower(1);
+        leftArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     private void arm_fold_move(int target) {
         arm_fold.setTargetPosition(target);
         arm_fold.setPower(1);
         arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    private boolean isBusy() {
+        return leftArm.isBusy() && rightArm.isBusy();
     }
 
     @SuppressLint("DefaultLocale")
