@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -13,32 +14,29 @@ public class DuoDriverControl extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftDrive;
-    private DcMotor rightDrive;
     private DcMotor leftArm;
     private DcMotor rightArm;
     private Servo rightClaw;
     private Servo leftClaw;
     private DcMotor arm_fold;
+    private DcMotor top_left_drive;
+    private DcMotor top_right_drive;
+    private DcMotor bottom_left_drive;
+    private DcMotor bottom_right_drive;
+
 
     @Override
     public void init() {
-        telemetry.addData("Status", "Initialized");
-
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
         rightClaw = hardwareMap.get(Servo.class, "left-claw");
         leftClaw = hardwareMap.get(Servo.class, "right-claw");
         leftArm = hardwareMap.get(DcMotor.class, "left-arm");
         rightArm = hardwareMap.get(DcMotor.class, "right-arm");
         arm_fold = hardwareMap.get(DcMotor.class, "arm_fold");
+        top_left_drive = hardwareMap.get(DcMotor.class, "top_left_drive");
+        top_right_drive = hardwareMap.get(DcMotor.class, "top_right_drive");
+        bottom_left_drive = hardwareMap.get(DcMotor.class, "bottom_left_drive");
+        bottom_right_drive = hardwareMap.get(DcMotor.class, "bottom_right_drive");
 
-        leftDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightDrive.setDirection(DcMotor.Direction.REVERSE);
-
-
-        telemetry.addData("Status", "Initialized");
-        telemetry.addData("Delivery", "AndroidStudio");
 
         //Motor Setups
         leftArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -50,6 +48,14 @@ public class DuoDriverControl extends OpMode
         arm_fold.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm_fold.setTargetPosition(0);
         arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        top_left_drive.setDirection(DcMotor.Direction.REVERSE);
+        top_right_drive.setDirection(DcMotor.Direction.FORWARD);
+        bottom_left_drive.setDirection(DcMotor.Direction.REVERSE);
+        bottom_right_drive.setDirection(DcMotor.Direction.FORWARD);
+
+
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
 
     }
 
@@ -70,7 +76,7 @@ public class DuoDriverControl extends OpMode
      */
     @Override
     public void loop() {
-//        double y = -gamepad1.left_stick_y; // Remember, this is reversed!
+//       double y = -gamepad1.left_stick_y; // Remember, this is reversed!
 //        double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
 //        double rx = gamepad1.right_stick_x;
 //
@@ -82,13 +88,22 @@ public class DuoDriverControl extends OpMode
 //        double backLeftPower = (y - x + rx) / denominator;
 //        double frontRightPower = (y - x - rx) / denominator;
 //        double backRightPower = (y + x - rx) / denominator;
-//
-//        motorFrontLeft.setPower(frontLeftPower);
-//        motorBackLeft.setPower(backLeftPower);
-//        motorFrontRight.setPower(frontRightPower);
-//        motorBackRight.setPower(backRightPower);
+//        top_left_drive.setPower(frontLeftPower);
+//        bottom_left_drive.setPower(backLeftPower);
+//        top_right_drive.setPower(frontRightPower);
+//        bottom_right_drive.setPower(backRightPower);
 
-        if(gamepad1.back && gamepad2.back) {
+        double forward = gamepad1.left_stick_y/2;
+        double sides = (-gamepad1.right_stick_x)/2;
+        double leftSpin = gamepad1.left_trigger/2;
+        double rightSpin = gamepad1.right_trigger/2;
+
+        top_left_drive.setPower(forward + sides + (-leftSpin + rightSpin) );
+        top_right_drive.setPower(forward + (-sides) + (leftSpin - rightSpin));
+        bottom_left_drive.setPower(forward + (-sides) + (-leftSpin + rightSpin));
+        bottom_right_drive.setPower(forward + sides + (leftSpin - rightSpin));
+
+        if(gamepad1.back || gamepad2.back) {
             leftArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             rightArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             leftArm.setTargetPosition(0);
@@ -142,6 +157,7 @@ public class DuoDriverControl extends OpMode
             arm_fold_move(615);
         }
 
+
         //Telemetry Output
         telemetry.addData("Arm_fold", arm_fold.getCurrentPosition());
         telemetry.addData("lclawpos", leftClaw.getPosition());
@@ -153,8 +169,8 @@ public class DuoDriverControl extends OpMode
     // Utility Functions
     private void arm_move(int target)
     {
-        leftArm.setTargetPosition(target);
-        rightArm.setTargetPosition(-target);
+        leftArm.setTargetPosition(-target);
+        rightArm.setTargetPosition(target);
         leftArm.setPower(1);
         rightArm.setPower(1);
         leftArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);

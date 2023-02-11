@@ -252,7 +252,7 @@ public class WallLeft extends LinearOpMode {
     // Utility Functions
     private void arm_move(int target) {
         leftArm.setTargetPosition(target);
-        rightArm.setTargetPosition(-target);
+        rightArm.setTargetPosition(target);
         leftArm.setPower(1);
         rightArm.setPower(1);
         leftArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
