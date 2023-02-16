@@ -93,15 +93,15 @@ public class DuoDriverControl extends OpMode
 //        top_right_drive.setPower(frontRightPower);
 //        bottom_right_drive.setPower(backRightPower);
 
-        double forward = gamepad1.left_stick_y/2;
-        double sides = (-gamepad1.right_stick_x)/2;
-        double leftSpin = gamepad1.left_trigger/2;
-        double rightSpin = gamepad1.right_trigger/2;
+        double forward = gamepad1.left_stick_y/1.25;
+        double sides = (-gamepad1.right_stick_x)/1.25;
+        double leftSpin = gamepad1.left_trigger/1.75;
+        double rightSpin = gamepad1.right_trigger/1.75;
 
-        top_left_drive.setPower(forward + sides + (-leftSpin + rightSpin) );
-        top_right_drive.setPower(forward + (-sides) + (leftSpin - rightSpin));
+        top_left_drive.setPower(forward + sides + (-leftSpin + rightSpin));
+        top_right_drive.setPower((forward + (-sides) + (leftSpin - rightSpin)) * 1.05);
         bottom_left_drive.setPower(forward + (-sides) + (-leftSpin + rightSpin));
-        bottom_right_drive.setPower(forward + sides + (leftSpin - rightSpin));
+        bottom_right_drive.setPower((forward + sides + (leftSpin - rightSpin)) * 1.05);
 
         if(gamepad1.back || gamepad2.back) {
             leftArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -134,10 +134,10 @@ public class DuoDriverControl extends OpMode
 
         //Arm Fold Manual Control
         if(gamepad2.left_stick_y != 0) {
-            arm_fold_move((int) (arm_fold.getCurrentPosition() + (gamepad2.left_stick_y*35)));
+            arm_fold_move((int) (arm_fold.getCurrentPosition() + (gamepad2.left_stick_y*-35)));
         }
         if(gamepad2.right_stick_y != 0) {
-            arm_move((int) (leftArm.getCurrentPosition() + (gamepad2.right_stick_y*35)));
+            arm_move((int) (rightArm.getCurrentPosition() + (gamepad2.right_stick_y*-50)));
         }
 
         if(gamepad2.a){

@@ -45,8 +45,10 @@ public class WallLeft extends LinearOpMode {
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
 
-    private DcMotor leftDrive;
-    private DcMotor rightDrive;
+    private DcMotor top_left_drive;
+    private DcMotor top_right_drive;
+    private DcMotor bottom_left_drive;
+    private DcMotor bottom_right_drive;
     private DcMotor leftArm;
     private DcMotor rightArm;
     private Servo rightClaw;
@@ -58,6 +60,7 @@ public class WallLeft extends LinearOpMode {
     static final double WHEEL_CIRCUMFERENCE_MM = 90 * Math.PI;
     static final double DRIVE_COUNTS_PER_MM = (HD_COUNTS_PER_REV * DRIVE_GEAR_REDUCTION) / WHEEL_CIRCUMFERENCE_MM;
     static final double DRIVE_COUNTS_PER_IN = DRIVE_COUNTS_PER_MM * 25.4;
+    static final double GLOBAL_SCALER = 1;
 
 
     static final double FEET_PER_METER = 3.28084;
@@ -106,16 +109,20 @@ public class WallLeft extends LinearOpMode {
         telemetry.setMsTransmissionInterval(50);
 
         //Innit Motors
-        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        top_left_drive = hardwareMap.get(DcMotor.class, "top_left_drive");
+        top_right_drive = hardwareMap.get(DcMotor.class, "top_right_drive");
+        bottom_left_drive = hardwareMap.get(DcMotor.class, "bottom_left_drive");
+        bottom_right_drive = hardwareMap.get(DcMotor.class, "bottom_right_drive");
         rightClaw = hardwareMap.get(Servo.class, "left-claw");
         leftClaw = hardwareMap.get(Servo.class, "right-claw");
         leftArm = hardwareMap.get(DcMotor.class, "left-arm");
         rightArm = hardwareMap.get(DcMotor.class, "right-arm");
         arm_fold = hardwareMap.get(DcMotor.class, "arm_fold");
 
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        top_left_drive.setDirection(DcMotor.Direction.FORWARD);
+        top_right_drive.setDirection(DcMotor.Direction.REVERSE);
+        bottom_left_drive.setDirection(DcMotor.Direction.FORWARD);
+        bottom_right_drive.setDirection(DcMotor.Direction.REVERSE);
 
         //Motor Setups
         leftArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -204,7 +211,7 @@ public class WallLeft extends LinearOpMode {
         //Grab Preload
         clawChange(true);
         //drive forward to tall pole
-        drive(power, 70, 70);
+        drive(power, 54, 54);
         //Move Arm to Position
         arm_move(760);
         arm_fold_move(655);
@@ -250,8 +257,9 @@ public class WallLeft extends LinearOpMode {
     }
 
     // Utility Functions
-    private void arm_move(int target) {
-        leftArm.setTargetPosition(target);
+    private void arm_move(int target)
+    {
+        leftArm.setTargetPosition(-target);
         rightArm.setTargetPosition(target);
         leftArm.setPower(1);
         rightArm.setPower(1);
@@ -266,7 +274,10 @@ public class WallLeft extends LinearOpMode {
     }
 
     private boolean isBusy() {
-        return leftArm.isBusy() && rightArm.isBusy();
+        if(leftArm.isBusy() && !rightArm.isBusy()) return true;
+        if(!leftArm.isBusy() && rightArm.isBusy()) return true;
+        if(!leftArm.isBusy() && !rightArm.isBusy()) return true;
+        return false;
     }
 
     @SuppressLint("DefaultLocale")
@@ -282,33 +293,41 @@ public class WallLeft extends LinearOpMode {
 
     private void drive(double power, double leftInches, double rightInches) {
 
-        int rightTarget;
-        int leftTarget;
-
         if (opModeIsActive()) {
             // Create target positions
-            rightTarget = rightDrive.getCurrentPosition() + (int) (rightInches * DRIVE_COUNTS_PER_IN);
-            leftTarget = leftDrive.getCurrentPosition() + (int) (leftInches * DRIVE_COUNTS_PER_IN);
+            int rightTopTarget = top_right_drive.getCurrentPosition() + (int) (rightInches * DRIVE_COUNTS_PER_IN);
+            int rightBottomTarget = bottom_right_drive.getCurrentPosition() + (int) (rightInches * DRIVE_COUNTS_PER_IN);
+            int leftTopTarget = top_left_drive.getCurrentPosition() + (int) (leftInches * DRIVE_COUNTS_PER_IN);
+            int leftBottomTarget = bottom_left_drive.getCurrentPosition() + (int) (leftInches * DRIVE_COUNTS_PER_IN);
 
             // set target position
-            leftDrive.setTargetPosition(leftTarget);
-            rightDrive.setTargetPosition(rightTarget);
+            top_left_drive.setTargetPosition((int) (leftTopTarget*GLOBAL_SCALER));
+            bottom_left_drive.setTargetPosition((int) (leftBottomTarget*GLOBAL_SCALER));
+            top_right_drive.setTargetPosition((int) (rightTopTarget*GLOBAL_SCALER));
+            bottom_right_drive.setTargetPosition((int) (rightBottomTarget * GLOBAL_SCALER));
 
             //switch to run to position mode
-            leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            top_left_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            bottom_left_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            top_right_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            bottom_right_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             //run to position at the designated power
-            leftDrive.setPower(power);
-            rightDrive.setPower(power);
+            top_left_drive.setPower(power);
+            bottom_left_drive.setPower(power);
+            top_right_drive.setPower(power);
+            bottom_right_drive.setPower(power);
 
             // wait until both motors are no longer busy running to position
-            while (opModeIsActive() && (leftDrive.isBusy() || rightDrive.isBusy())) {}
+            while (opModeIsActive() && (top_left_drive.isBusy() || top_right_drive.isBusy() ||
+                    bottom_left_drive.isBusy() || bottom_right_drive.isBusy())) {}
         }
 
         // set motor power back to 0
-        leftDrive.setPower(0);
-        rightDrive.setPower(0);
+        top_left_drive.setPower(0);
+        bottom_left_drive.setPower(0);
+        top_right_drive.setPower(0);
+        bottom_right_drive.setPower(0);
     }
 
     private void turnRight() {
@@ -321,13 +340,16 @@ public class WallLeft extends LinearOpMode {
 
     private void clawChange(boolean bool) {
         if (bool) {
-            rightClaw.setPosition(-0.4);
-            leftClaw.setPosition(0.4);
+            leftClaw.setDirection(Servo.Direction.REVERSE);
+            rightClaw.setDirection(Servo.Direction.REVERSE);
+            rightClaw.setPosition(0.3);
+            leftClaw.setPosition(0.7);
             return;
         }
-
+        leftClaw.setDirection(Servo.Direction.FORWARD);
+        rightClaw.setDirection(Servo.Direction.REVERSE);
         rightClaw.setPosition(0);
-        leftClaw.setPosition(-0.4);
+        leftClaw.setPosition(0);
     }
 
     public void afterQual() {

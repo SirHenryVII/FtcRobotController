@@ -26,7 +26,6 @@ import android.annotation.SuppressLint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -38,8 +37,8 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.util.ArrayList;
 
-@Autonomous(name="Auton (Wall Right)")
-public class WallRight extends LinearOpMode {
+@Autonomous(name = "Motor Test")
+public class MotorTest extends LinearOpMode {
     //Innit Global Variables
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
@@ -133,13 +132,18 @@ public class WallRight extends LinearOpMode {
         arm_fold.setTargetPosition(0);
         arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
+
+
         /*
          * The INIT-loop:
          * This REPLACES waitForStart!
          */
         telemetry.addLine("Initialization Complete");
         telemetry.update();
-        while (!isStarted() && !isStopRequested()) ;
+
+        while (!isStarted() && !isStopRequested()) {
+            sleep(20);
+        }
 
         runtime.reset();
 
@@ -198,78 +202,12 @@ public class WallRight extends LinearOpMode {
             sleep(20);
         }
 
-
         double power = 0.8;
 
-        //Drive Code
-        //Grab Preload
-        clawChange(true);
-        //drive forward to tall pole
-        drive(power, 70, 70);
-        //Move Arm to Position
-        arm_move(760);
-        arm_fold_move(655);
-        //Don't do anything while arm is moving
-        while(arm_fold.isBusy() || isBusy()){}
-        //Further positioning to get preload above pole
-        drive(power, -14, 14);
-        drive(power, 6, 6);
-        //Release preload
-        clawChange(false);
-        //Sleep command because servos are delayed
-        sleep(1000);
-        //Reposition away from pole
-        drive(power, -6, -6);
-        drive(power, 14, -14);
-
-        /*
-        //Pick up another cone
-        //Lower Arm
-        arm_move(350);
-        arm_fold_move(200);
-        //Drive a little forward
-        drive(power, 15, 15);
-        //Face next cone
-        turnLeft();
-        //Drive to cone
-        drive(power, 30, 30);
-        //Close Claw
-        clawChange(true);
-        sleep(1000);
-        //Raise Arm
-        arm_move(750);
-        arm_fold_move(655);
-        while(arm_fold.isBusy() || arm.isBusy()){}
-        //Turn around
-        drive(power, -64, 64);
-        //Drive to Pole
-        drive(power, 25, 25);
-        //Drop Cone
-        clawChange(false);
-        sleep(200);
-        //Turn twoards parking
-        turnRight();
-        */
-
-        //Return arm back to normal position to prepare for driver control innit
-        arm_move(0);
-        arm_fold_move(0);
-        //Drive back to middle of parking spots
-        drive(power, -32, -32);
-
-        //Signal Conditions
-        if(tagOfInterest != null){
-            if(tagOfInterest.id == LEFT){
-                turnLeft();
-                drive(power, 35, 35);
-            }
-            else if(tagOfInterest.id == RIGHT){
-                turnRight();
-                drive(power, 38, 38);
-            }
-        }
-
-        while(isBusy() || arm_fold.isBusy()){}
+        driveMotor(top_left_drive, 1000);
+        driveMotor(top_right_drive, 1000);
+        driveMotor(bottom_left_drive, 1000);
+        driveMotor(bottom_right_drive, 1000);
 
     }
 
@@ -284,14 +222,14 @@ public class WallRight extends LinearOpMode {
         rightArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
-    private boolean isBusy() {
-        return leftArm.isBusy() || rightArm.isBusy();
-    }
-
     private void arm_fold_move(int target) {
         arm_fold.setTargetPosition(target);
         arm_fold.setPower(1);
         arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    private boolean isBusy() {
+        return leftArm.isBusy() && rightArm.isBusy();
     }
 
     @SuppressLint("DefaultLocale")
@@ -337,7 +275,7 @@ public class WallRight extends LinearOpMode {
 
             // wait until both motors are no longer busy running to position
             while (opModeIsActive() && (top_left_drive.isBusy() || top_right_drive.isBusy() ||
-                                        bottom_left_drive.isBusy() || bottom_right_drive.isBusy())) {}
+                    bottom_left_drive.isBusy() || bottom_right_drive.isBusy())) {}
         }
 
         // set motor power back to 0
@@ -347,8 +285,28 @@ public class WallRight extends LinearOpMode {
         bottom_right_drive.setPower(0);
     }
 
-    private void turnRight() {drive(0.6, 32, -32);}
-    private void turnLeft() {drive(0.6, -33, 33);}
+    private void driveMotor(DcMotor motor, int position) {
+        if (opModeIsActive()) {
+            // set target position
+            telemetry.addData("Motor Status", motor.getCurrentPosition());
+            motor.setTargetPosition(motor.getCurrentPosition() + position);
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setPower(1.0);
+
+            while (opModeIsActive() && (motor.isBusy())) {}
+        }
+
+        // set motor power back to 0
+        motor.setPower(0);
+    }
+
+    private void turnRight() {
+        drive(0.6, 32, -32);
+    }
+
+    private void turnLeft() {
+        drive(0.6, -33, 33);
+    }
 
     private void clawChange(boolean bool) {
         if (bool) {
@@ -362,6 +320,37 @@ public class WallRight extends LinearOpMode {
         rightClaw.setDirection(Servo.Direction.REVERSE);
         rightClaw.setPosition(0);
         leftClaw.setPosition(0);
+    }
+
+    public void afterQual() {
+                /*
+        //Pick up another cone
+        //Lower Arm
+        arm_move(350);
+        arm_fold_move(200);
+        //Drive a little forward
+        drive(power, 15, 15);
+        //Face next cone
+        turnLeft();
+        //Drive to cone
+        drive(power, 30, 30);
+        //Close Claw
+        clawChange(true);
+        sleep(1000);
+        //Raise Arm
+        arm_move(750);
+        arm_fold_move(655);
+        while(arm_fold.isBusy() || arm.isBusy()){}
+        //Turn around
+        drive(power, -64, 64);
+        //Drive to Pole
+        drive(power, 25, 25);
+        //Drop Cone
+        clawChange(false);
+        sleep(200);
+        //Turn twoards parking
+        turnRight();
+        */
     }
 
 }
