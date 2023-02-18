@@ -27,8 +27,8 @@ public class DuoDriverControl extends OpMode
 
     @Override
     public void init() {
-        rightClaw = hardwareMap.get(Servo.class, "left-claw");
-        leftClaw = hardwareMap.get(Servo.class, "right-claw");
+        rightClaw = hardwareMap.get(Servo.class, "right-claw");
+        leftClaw = hardwareMap.get(Servo.class, "left-claw");
         leftArm = hardwareMap.get(DcMotor.class, "left-arm");
         rightArm = hardwareMap.get(DcMotor.class, "right-arm");
         arm_fold = hardwareMap.get(DcMotor.class, "arm_fold");
@@ -52,7 +52,6 @@ public class DuoDriverControl extends OpMode
         top_right_drive.setDirection(DcMotor.Direction.FORWARD);
         bottom_left_drive.setDirection(DcMotor.Direction.REVERSE);
         bottom_right_drive.setDirection(DcMotor.Direction.FORWARD);
-
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -94,14 +93,13 @@ public class DuoDriverControl extends OpMode
 //        bottom_right_drive.setPower(backRightPower);
 
         double forward = gamepad1.left_stick_y/1.25;
-        double sides = (-gamepad1.right_stick_x)/1.25;
-        double leftSpin = gamepad1.left_trigger/1.75;
-        double rightSpin = gamepad1.right_trigger/1.75;
+        double sides = (-gamepad1.left_stick_x)/1.25;
+        double spin = gamepad1.right_stick_x/1.75;
 
-        top_left_drive.setPower(forward + sides + (-leftSpin + rightSpin));
-        top_right_drive.setPower((forward + (-sides) + (leftSpin - rightSpin)) * 1.05);
-        bottom_left_drive.setPower(forward + (-sides) + (-leftSpin + rightSpin));
-        bottom_right_drive.setPower((forward + sides + (leftSpin - rightSpin)) * 1.05);
+        top_left_drive.setPower(forward + sides + spin);
+        top_right_drive.setPower((forward - sides - spin) * 1.05);
+        bottom_left_drive.setPower(forward - sides + spin);
+        bottom_right_drive.setPower((forward + sides - spin) * 1.05);
 
         if(gamepad1.back || gamepad2.back) {
             leftArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -142,7 +140,7 @@ public class DuoDriverControl extends OpMode
 
         if(gamepad2.a){
             arm_move(0);
-            arm_fold_move(388);
+            arm_fold_move(370);
         }
         else if(gamepad2.b){
             arm_move(420);
@@ -160,8 +158,10 @@ public class DuoDriverControl extends OpMode
 
         //Telemetry Output
         telemetry.addData("Arm_fold", arm_fold.getCurrentPosition());
-        telemetry.addData("lclawpos", leftClaw.getPosition());
+//        telemetry.addData("lclawpos", arm_fold.getPosition());
+        telemetry.addData("lclawpos dir", leftClaw.getDirection());
         telemetry.addData("rclawpos", rightClaw.getPosition());
+        telemetry.addData("rclawpos dir", rightClaw.getDirection());
         telemetry.addData("Status", "Run Time: " + runtime.milliseconds());
         telemetry.update();
     }
@@ -171,8 +171,8 @@ public class DuoDriverControl extends OpMode
     {
         leftArm.setTargetPosition(-target);
         rightArm.setTargetPosition(target);
-        leftArm.setPower(1);
-        rightArm.setPower(1);
+        leftArm.setPower(0.75);
+        rightArm.setPower(0.75);
         leftArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         rightArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
@@ -184,16 +184,16 @@ public class DuoDriverControl extends OpMode
     }
     private void clawChange(boolean bool) {
         if (bool) {
-            leftClaw.setDirection(Servo.Direction.REVERSE);
+            leftClaw.setDirection(Servo.Direction.FORWARD);
             rightClaw.setDirection(Servo.Direction.REVERSE);
-            rightClaw.setPosition(0.3);
-            leftClaw.setPosition(0.7);
+            rightClaw.setPosition(0.7);
+            leftClaw.setPosition(0.3);
             return;
         }
-        leftClaw.setDirection(Servo.Direction.FORWARD);
-        rightClaw.setDirection(Servo.Direction.REVERSE);
+        leftClaw.setDirection(Servo.Direction.REVERSE);
+        rightClaw.setDirection(Servo.Direction.FORWARD);
+        leftClaw.setPosition(0.3);
         rightClaw.setPosition(0);
-        leftClaw.setPosition(0);
     }
     @Override
     public void stop() {
