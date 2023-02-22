@@ -87,7 +87,7 @@ public class WallLeft extends LinearOpMode {
     AprilTagDetection tagOfInterest = null;
 
     @Override
-    public void runOpMode() {
+    public void runOpMode() throws InterruptedException {
         //April Tags Stuff
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
@@ -113,8 +113,8 @@ public class WallLeft extends LinearOpMode {
         top_right_drive = hardwareMap.get(DcMotor.class, "top_right_drive");
         bottom_left_drive = hardwareMap.get(DcMotor.class, "bottom_left_drive");
         bottom_right_drive = hardwareMap.get(DcMotor.class, "bottom_right_drive");
-        rightClaw = hardwareMap.get(Servo.class, "left-claw");
-        leftClaw = hardwareMap.get(Servo.class, "right-claw");
+        rightClaw = hardwareMap.get(Servo.class, "right-claw");
+        leftClaw = hardwareMap.get(Servo.class, "left-claw");
         leftArm = hardwareMap.get(DcMotor.class, "left-arm");
         rightArm = hardwareMap.get(DcMotor.class, "right-arm");
         arm_fold = hardwareMap.get(DcMotor.class, "arm_fold");
@@ -148,7 +148,7 @@ public class WallLeft extends LinearOpMode {
             sleep(20);
         }
 
-        runtime.reset();
+        Thread.sleep(200);
 
         //Detection
         boolean detectionPassed = false;
@@ -211,16 +211,17 @@ public class WallLeft extends LinearOpMode {
         //Grab Preload
         clawChange(true);
         //drive forward to tall pole
-        drive(power, 54, 54);
+        drive(power, 52, 52);
         //Move Arm to Position
-        arm_move(760);
-        arm_fold_move(655);
+        arm_move(775);
+        arm_fold_move(665);
         //Don't do anything while arm is moving
         while (arm_fold.isBusy() || isBusy()) {
         }
+        sleep(200);
         //Further positioning to get preload above pole
-        drive(power, 12, -12);
-        drive(power, 8, 8);
+        drive(power, 10, -10);
+        drive(power, 3, 3);
         //Sleep just to prevent any movement
         sleep(200);
         //Release preload
@@ -228,8 +229,8 @@ public class WallLeft extends LinearOpMode {
         //Sleep command because servos are delayed
         sleep(1000);
         //Reposition away from pole
-        drive(power, -7.8, -7.8);
-        drive(power, -12, 12);
+        drive(power, -3, -3);
+        drive(power, -10, 10);
 
         afterQual();
 
@@ -237,7 +238,7 @@ public class WallLeft extends LinearOpMode {
         arm_move(0);
         arm_fold_move(0);
         //Drive back to middle of parking spots
-        drive(power, -30, -30);
+        drive(power, -24, -24);
 
         //Signal Conditions
         if (tagOfInterest != null) {
@@ -340,16 +341,16 @@ public class WallLeft extends LinearOpMode {
 
     private void clawChange(boolean bool) {
         if (bool) {
-            leftClaw.setDirection(Servo.Direction.REVERSE);
+            leftClaw.setDirection(Servo.Direction.FORWARD);
             rightClaw.setDirection(Servo.Direction.REVERSE);
-            rightClaw.setPosition(0.3);
-            leftClaw.setPosition(0.7);
+            rightClaw.setPosition(0.5);
+            leftClaw.setPosition(-0.7);
             return;
         }
-        leftClaw.setDirection(Servo.Direction.FORWARD);
-        rightClaw.setDirection(Servo.Direction.REVERSE);
+        leftClaw.setDirection(Servo.Direction.REVERSE);
+        rightClaw.setDirection(Servo.Direction.FORWARD);
+        leftClaw.setPosition(0.3);
         rightClaw.setPosition(0);
-        leftClaw.setPosition(0);
     }
 
     public void afterQual() {

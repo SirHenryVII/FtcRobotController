@@ -78,23 +78,10 @@ public class DuoDriverControl extends OpMode
 //       double y = -gamepad1.left_stick_y; // Remember, this is reversed!
 //        double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
 //        double rx = gamepad1.right_stick_x;
-//
-//        // Denominator is the largest motor power (absolute value) or 1
-//        // This ensures all the powers maintain the same ratio, but only when
-//        // at least one is out of the range [-1, 1]
-//        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-//        double frontLeftPower = (y + x + rx) / denominator;
-//        double backLeftPower = (y - x + rx) / denominator;
-//        double frontRightPower = (y - x - rx) / denominator;
-//        double backRightPower = (y + x - rx) / denominator;
-//        top_left_drive.setPower(frontLeftPower);
-//        bottom_left_drive.setPower(backLeftPower);
-//        top_right_drive.setPower(frontRightPower);
-//        bottom_right_drive.setPower(backRightPower);
 
         double forward = gamepad1.left_stick_y/1.25;
-        double sides = (-gamepad1.left_stick_x)/1.25;
-        double spin = gamepad1.right_stick_x/1.75;
+        double sides = (-gamepad1.left_stick_x/1.25) * 1.1;
+        double spin = -gamepad1.right_stick_x/1.75;
 
         top_left_drive.setPower(forward + sides + spin);
         top_right_drive.setPower((forward - sides - spin) * 1.05);
@@ -113,9 +100,6 @@ public class DuoDriverControl extends OpMode
             arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
 
-        //Gamepad 1
-
-        if(gamepad1.left_stick_y != 0 && gamepad1.right_stick_y != 0)
 
         //Gamepad 2
         if(gamepad2.start){
@@ -132,7 +116,7 @@ public class DuoDriverControl extends OpMode
 
         //Arm Fold Manual Control
         if(gamepad2.left_stick_y != 0) {
-            arm_fold_move((int) (arm_fold.getCurrentPosition() + (gamepad2.left_stick_y*-35)));
+            arm_fold_move((int) (arm_fold.getCurrentPosition() + (gamepad2.left_stick_y*35)));
         }
         if(gamepad2.right_stick_y != 0) {
             arm_move((int) (rightArm.getCurrentPosition() + (gamepad2.right_stick_y*-50)));
@@ -140,25 +124,25 @@ public class DuoDriverControl extends OpMode
 
         if(gamepad2.a){
             arm_move(0);
-            arm_fold_move(370);
+            arm_fold_move(365);
         }
         else if(gamepad2.b){
             arm_move(420);
-            arm_fold_move(610);
+            arm_fold_move(550);
         }
         else if(gamepad2.y){
             arm_move(550);
             arm_fold_move(590);
         }
         else if(gamepad2.x){
-            arm_move(750);
-            arm_fold_move(615);
+            arm_move(770);
+            arm_fold_move(620);
         }
 
 
         //Telemetry Output
         telemetry.addData("Arm_fold", arm_fold.getCurrentPosition());
-//        telemetry.addData("lclawpos", arm_fold.getPosition());
+        telemetry.addData("rarmpos", rightArm.getCurrentPosition());
         telemetry.addData("lclawpos dir", leftClaw.getDirection());
         telemetry.addData("rclawpos", rightClaw.getPosition());
         telemetry.addData("rclawpos dir", rightClaw.getDirection());
@@ -186,8 +170,8 @@ public class DuoDriverControl extends OpMode
         if (bool) {
             leftClaw.setDirection(Servo.Direction.FORWARD);
             rightClaw.setDirection(Servo.Direction.REVERSE);
-            rightClaw.setPosition(0.7);
-            leftClaw.setPosition(0.3);
+            rightClaw.setPosition(0.5);
+            leftClaw.setPosition(-0.7);
             return;
         }
         leftClaw.setDirection(Servo.Direction.REVERSE);

@@ -111,8 +111,8 @@ public class WallRight extends LinearOpMode {
         top_right_drive = hardwareMap.get(DcMotor.class, "top_right_drive");
         bottom_left_drive = hardwareMap.get(DcMotor.class, "bottom_left_drive");
         bottom_right_drive = hardwareMap.get(DcMotor.class, "bottom_right_drive");
-        rightClaw = hardwareMap.get(Servo.class, "left-claw");
-        leftClaw = hardwareMap.get(Servo.class, "right-claw");
+        rightClaw = hardwareMap.get(Servo.class, "right-claw");
+        leftClaw = hardwareMap.get(Servo.class, "left-claw");
         leftArm = hardwareMap.get(DcMotor.class, "left-arm");
         rightArm = hardwareMap.get(DcMotor.class, "right-arm");
         arm_fold = hardwareMap.get(DcMotor.class, "arm_fold");
@@ -352,16 +352,16 @@ public class WallRight extends LinearOpMode {
 
     private void clawChange(boolean bool) {
         if (bool) {
-            leftClaw.setDirection(Servo.Direction.REVERSE);
+            leftClaw.setDirection(Servo.Direction.FORWARD);
             rightClaw.setDirection(Servo.Direction.REVERSE);
-            rightClaw.setPosition(0.3);
-            leftClaw.setPosition(0.7);
+            rightClaw.setPosition(0.5);
+            leftClaw.setPosition(-0.7);
             return;
         }
-        leftClaw.setDirection(Servo.Direction.FORWARD);
-        rightClaw.setDirection(Servo.Direction.REVERSE);
+        leftClaw.setDirection(Servo.Direction.REVERSE);
+        rightClaw.setDirection(Servo.Direction.FORWARD);
+        leftClaw.setPosition(0.3);
         rightClaw.setPosition(0);
-        leftClaw.setPosition(0);
     }
 
 }
