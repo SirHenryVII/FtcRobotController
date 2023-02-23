@@ -130,13 +130,13 @@ public class DuoDriverControl extends OpMode
             arm_move(420);
             arm_fold_move(550);
         }
-        else if(gamepad2.y){
+        else if(gamepad2.x){
             arm_move(550);
             arm_fold_move(590);
         }
-        else if(gamepad2.x){
-            arm_move(770);
-            arm_fold_move(620);
+        else if(gamepad2.y){
+            arm_move(775);
+            arm_fold_move(650);
         }
 
 

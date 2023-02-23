@@ -87,7 +87,7 @@ public class WallLeft extends LinearOpMode {
     AprilTagDetection tagOfInterest = null;
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() {
         //April Tags Stuff
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
@@ -148,7 +148,7 @@ public class WallLeft extends LinearOpMode {
             sleep(20);
         }
 
-        Thread.sleep(200);
+        runtime.reset();
 
         //Detection
         boolean detectionPassed = false;
@@ -161,7 +161,7 @@ public class WallLeft extends LinearOpMode {
 
                     //If a detection is found
                     if (!currentDetections.isEmpty()) {
-
+                        telemetry.addLine("It is detecting something, just not any of our tags");
                         //For every detection (most likely just one)
                         for (AprilTagDetection tag : currentDetections) {
                             //Check if detection is one of the tags we are looking for
@@ -171,9 +171,10 @@ public class WallLeft extends LinearOpMode {
                                 break;
                             }
                         }
-                        //Else if a detection in not found
+                        //else if a detection in not found
                     } else telemetry.addLine("Don't see any tags :(");
 
+                    telemetry.addData("Time Elapsed", runtime.milliseconds());
                     telemetry.update();
                     sleep(20);
                 }
@@ -214,14 +215,14 @@ public class WallLeft extends LinearOpMode {
         drive(power, 52, 52);
         //Move Arm to Position
         arm_move(775);
-        arm_fold_move(665);
+        arm_fold_move(650);
         //Don't do anything while arm is moving
         while (arm_fold.isBusy() || isBusy()) {
         }
         sleep(200);
         //Further positioning to get preload above pole
         drive(power, 10, -10);
-        drive(power, 3, 3);
+        drive(power, 4, 4);
         //Sleep just to prevent any movement
         sleep(200);
         //Release preload
@@ -229,7 +230,7 @@ public class WallLeft extends LinearOpMode {
         //Sleep command because servos are delayed
         sleep(1000);
         //Reposition away from pole
-        drive(power, -3, -3);
+        drive(power, -4, -4);
         drive(power, -10, 10);
 
         afterQual();
@@ -243,11 +244,11 @@ public class WallLeft extends LinearOpMode {
         //Signal Conditions
         if (tagOfInterest != null) {
             if (tagOfInterest.id == LEFT) {
-                turnLeft();
-                drive(power, 36, 36);
+                drive(0.4, -24, 24);
+                drive(power, 22, 22);
             } else if (tagOfInterest.id == RIGHT) {
-                turnRight();
-                drive(power, 36, 36);
+                drive(0.4, 21.5, -21.5);
+                drive(power, 23, 23);
             }
         }
 
