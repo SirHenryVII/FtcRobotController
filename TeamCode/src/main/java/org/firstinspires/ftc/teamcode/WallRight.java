@@ -212,7 +212,9 @@ public class WallRight extends LinearOpMode {
         //Grab Preload
         clawChange(true);
         //drive forward to tall pole
-        drive(power, 52, 52);
+        drive(power, 48, 48);
+
+
         //Move Arm to Position
         arm_move(775);
         arm_fold_move(650);
@@ -221,8 +223,8 @@ public class WallRight extends LinearOpMode {
         }
         sleep(200);
         //Further positioning to get preload above pole
-        drive(power, -10, 10);
-        drive(power, 6, 6);
+        drive(power, -8, 8);
+        drive(power, 5.5, 5.5);
         //Sleep just to prevent any movement
         sleep(200);
         //Release preload
@@ -231,7 +233,7 @@ public class WallRight extends LinearOpMode {
         sleep(1000);
         //Reposition away from pole
         drive(power, -6, -6);
-        drive(power, 10, -10);
+        drive(power, 8, -8);
 
         afterQual();
 
@@ -239,16 +241,16 @@ public class WallRight extends LinearOpMode {
         arm_move(0);
         arm_fold_move(0);
         //Drive back to middle of parking spots
-        drive(power, -24, -24);
+        drive(power, -20.5, -20.5);
 
         //Signal Conditions
         if (tagOfInterest != null) {
             if (tagOfInterest.id == LEFT) {
                 drive(0.4, -23, 23);
-                drive(power, 24, 24);
+                drive(power, 25, 25);
             } else if (tagOfInterest.id == RIGHT) {
                 drive(0.4, 21.5, -21.5);
-                drive(power, 23, 23);
+                drive(power, 25, 25);
             }
         }
 
