@@ -215,13 +215,13 @@ public class WallLeft extends LinearOpMode {
         drive(power, 52, 52);
         //Move Arm to Position
         arm_move(775);
-        arm_fold_move(650);
+        arm_fold_move(630);
         //Don't do anything while arm is moving
         while (arm_fold.isBusy() || isBusy()) {
         }
         sleep(200);
         //Further positioning to get preload above pole
-        drive(power, 10, -10);
+        drive(power, 9, -9);
         drive(power, 4, 4);
         //Sleep just to prevent any movement
         sleep(200);
@@ -231,7 +231,7 @@ public class WallLeft extends LinearOpMode {
         sleep(1000);
         //Reposition away from pole
         drive(power, -4, -4);
-        drive(power, -10, 10);
+        drive(power, -9, 9);
 
         afterQual();
 
@@ -239,16 +239,16 @@ public class WallLeft extends LinearOpMode {
         arm_move(0);
         arm_fold_move(0);
         //Drive back to middle of parking spots
-        drive(power, -24, -24);
+        drive(power, -21.5, -21.5);
 
         //Signal Conditions
         if (tagOfInterest != null) {
             if (tagOfInterest.id == LEFT) {
                 drive(0.4, -24, 24);
-                drive(power, 22, 22);
+                drive(power, 25, 25);
             } else if (tagOfInterest.id == RIGHT) {
                 drive(0.4, 21.5, -21.5);
-                drive(power, 23, 23);
+                drive(power, 25, 25);
             }
         }
 

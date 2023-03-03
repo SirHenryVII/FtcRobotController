@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.concurrent.CountDownLatch;
+
 
 @TeleOp(name="DuoDriver Control")
 
@@ -81,7 +83,7 @@ public class DuoDriverControl extends OpMode
 
         double forward = gamepad1.left_stick_y/1.25;
         double sides = (-gamepad1.left_stick_x/1.25) * 1.1;
-        double spin = -gamepad1.right_stick_x/1.75;
+        double spin = (-gamepad1.right_stick_x/1.75) * 1.5;
 
         top_left_drive.setPower(forward + sides + spin);
         top_right_drive.setPower((forward - sides - spin) * 1.05);
@@ -124,7 +126,7 @@ public class DuoDriverControl extends OpMode
 
         if(gamepad2.a){
             arm_move(0);
-            arm_fold_move(365);
+            arm_fold_move(360);
         }
         else if(gamepad2.b){
             arm_move(420);
