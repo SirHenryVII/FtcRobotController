@@ -170,15 +170,11 @@ public class DuoDriverControl extends OpMode
     }
     private void clawChange(boolean bool) {
         if (bool) {
-            leftClaw.setDirection(Servo.Direction.FORWARD);
-            rightClaw.setDirection(Servo.Direction.REVERSE);
-            rightClaw.setPosition(0.5);
-            leftClaw.setPosition(-0.7);
+            rightClaw.setPosition(0.7);
+            leftClaw.setPosition(0.5);
             return;
         }
-        leftClaw.setDirection(Servo.Direction.REVERSE);
-        rightClaw.setDirection(Servo.Direction.FORWARD);
-        leftClaw.setPosition(0.3);
+        leftClaw.setPosition(1);
         rightClaw.setPosition(0);
     }
     @Override

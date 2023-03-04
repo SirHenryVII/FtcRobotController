@@ -26,9 +26,7 @@ import android.annotation.SuppressLint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -39,8 +37,8 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.util.ArrayList;
 
-@Autonomous(name = "Auton (Wall Right)")
-public class WallRight extends LinearOpMode {
+@Autonomous(name = "WallLeft_OLD")
+public class WallLeft_OLD extends LinearOpMode {
     //Innit Global Variables
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
@@ -212,9 +210,7 @@ public class WallRight extends LinearOpMode {
         //Grab Preload
         clawChange(true);
         //drive forward to tall pole
-        drive(power, 48, 48);
-
-
+        drive(power, 52, 52);
         //Move Arm to Position
         arm_move(775);
         arm_fold_move(630);
@@ -223,8 +219,8 @@ public class WallRight extends LinearOpMode {
         }
         sleep(200);
         //Further positioning to get preload above pole
-        drive(power, -9, 9);
-        drive(power, 6, 6);
+        drive(power, 9, -9);
+        drive(power, 4, 4);
         //Sleep just to prevent any movement
         sleep(200);
         //Release preload
@@ -232,8 +228,8 @@ public class WallRight extends LinearOpMode {
         //Sleep command because servos are delayed
         sleep(1000);
         //Reposition away from pole
-        drive(power, -6, -6);
-        drive(power, 9, -9);
+        drive(power, -4, -4);
+        drive(power, -9, 9);
 
         afterQual();
 
@@ -241,12 +237,12 @@ public class WallRight extends LinearOpMode {
         arm_move(0);
         arm_fold_move(0);
         //Drive back to middle of parking spots
-        drive(power, -20, -20);
+        drive(power, -21.5, -21.5);
 
         //Signal Conditions
         if (tagOfInterest != null) {
             if (tagOfInterest.id == LEFT) {
-                drive(0.4, -23, 23);
+                drive(0.4, -24, 24);
                 drive(power, 25, 25);
             } else if (tagOfInterest.id == RIGHT) {
                 drive(0.4, 21.5, -21.5);

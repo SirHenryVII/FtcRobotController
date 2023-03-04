@@ -26,12 +26,10 @@ import android.annotation.SuppressLint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -39,8 +37,8 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.util.ArrayList;
 
-@Autonomous(name = "Auton Left")
-public class WallLeft extends LinearOpMode {
+@Autonomous(name = "WallRight_OLD")
+public class WallRight_OLD extends LinearOpMode {
     //Innit Global Variables
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
@@ -54,7 +52,16 @@ public class WallLeft extends LinearOpMode {
     private Servo rightClaw;
     private Servo leftClaw;
     private DcMotor arm_fold;
-    private SampleMecanumDrive MecDrive;
+
+    static final double HD_COUNTS_PER_REV = 28;
+    static final double DRIVE_GEAR_REDUCTION = 20.15293;
+    static final double WHEEL_CIRCUMFERENCE_MM = 90 * Math.PI;
+    static final double DRIVE_COUNTS_PER_MM = (HD_COUNTS_PER_REV * DRIVE_GEAR_REDUCTION) / WHEEL_CIRCUMFERENCE_MM;
+    static final double DRIVE_COUNTS_PER_IN = DRIVE_COUNTS_PER_MM * 25.4;
+    static final double GLOBAL_SCALER = 1;
+
+
+    static final double FEET_PER_METER = 3.28084;
     ElapsedTime runtime = new ElapsedTime();
 
     // Lens intrinsics
@@ -110,16 +117,28 @@ public class WallLeft extends LinearOpMode {
         rightArm = hardwareMap.get(DcMotor.class, "right-arm");
         arm_fold = hardwareMap.get(DcMotor.class, "arm_fold");
 
+        top_left_drive.setDirection(DcMotor.Direction.FORWARD);
+        top_right_drive.setDirection(DcMotor.Direction.REVERSE);
+        bottom_left_drive.setDirection(DcMotor.Direction.FORWARD);
+        bottom_right_drive.setDirection(DcMotor.Direction.REVERSE);
+
+        //Motor Setups
+        leftArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftArm.setTargetPosition(0);
+        rightArm.setTargetPosition(0);
+        leftArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm_fold.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        arm_fold.setTargetPosition(0);
+        arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+
+
         /*
          * The INIT-loop:
          * This REPLACES waitForStart!
          */
-
-        //Road Runner Innit
-        MecDrive = new SampleMecanumDrive(hardwareMap);
-
-
-
         telemetry.addLine("Initialization Complete");
         telemetry.update();
 
@@ -185,7 +204,57 @@ public class WallLeft extends LinearOpMode {
             sleep(20);
         }
 
-        //Drive Functions
+        double power = 0.8;
+
+        //Drive Code
+        //Grab Preload
+        clawChange(true);
+        //drive forward to tall pole
+        drive(power, 48, 48);
+
+
+        //Move Arm to Position
+        arm_move(775);
+        arm_fold_move(630);
+        //Don't do anything while arm is moving
+        while (arm_fold.isBusy() || isBusy()) {
+        }
+        sleep(200);
+        //Further positioning to get preload above pole
+        drive(power, -9, 9);
+        drive(power, 6, 6);
+        //Sleep just to prevent any movement
+        sleep(200);
+        //Release preload
+        clawChange(false);
+        //Sleep command because servos are delayed
+        sleep(1000);
+        //Reposition away from pole
+        drive(power, -6, -6);
+        drive(power, 9, -9);
+
+        afterQual();
+
+        //Return arm back to normal position to prepare for driver control innit
+        arm_move(0);
+        arm_fold_move(0);
+        //Drive back to middle of parking spots
+        drive(power, -20, -20);
+
+        //Signal Conditions
+        if (tagOfInterest != null) {
+            if (tagOfInterest.id == LEFT) {
+                drive(0.4, -23, 23);
+                drive(power, 25, 25);
+            } else if (tagOfInterest.id == RIGHT) {
+                drive(0.4, 21.5, -21.5);
+                drive(power, 25, 25);
+            }
+        }
+
+        while (isBusy() || arm_fold.isBusy()) {
+            sleep(20);
+        }
 
     }
 
@@ -216,9 +285,59 @@ public class WallLeft extends LinearOpMode {
     @SuppressLint("DefaultLocale")
     void tagToTelemetry(AprilTagDetection detection) {
         telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
+        telemetry.addLine(String.format("Translation X: %.2f feet", detection.pose.x * FEET_PER_METER));
+        telemetry.addLine(String.format("Translation Y: %.2f feet", detection.pose.y * FEET_PER_METER));
+        telemetry.addLine(String.format("Translation Z: %.2f feet", detection.pose.z * FEET_PER_METER));
         telemetry.addLine(String.format("Rotation Yaw: %.2f degrees", Math.toDegrees(detection.pose.yaw)));
         telemetry.addLine(String.format("Rotation Pitch: %.2f degrees", Math.toDegrees(detection.pose.pitch)));
         telemetry.addLine(String.format("Rotation Roll: %.2f degrees", Math.toDegrees(detection.pose.roll)));
+    }
+
+    private void drive(double power, double leftInches, double rightInches) {
+
+        if (opModeIsActive()) {
+            // Create target positions
+            int rightTopTarget = top_right_drive.getCurrentPosition() + (int) (rightInches * DRIVE_COUNTS_PER_IN);
+            int rightBottomTarget = bottom_right_drive.getCurrentPosition() + (int) (rightInches * DRIVE_COUNTS_PER_IN);
+            int leftTopTarget = top_left_drive.getCurrentPosition() + (int) (leftInches * DRIVE_COUNTS_PER_IN);
+            int leftBottomTarget = bottom_left_drive.getCurrentPosition() + (int) (leftInches * DRIVE_COUNTS_PER_IN);
+
+            // set target position
+            top_left_drive.setTargetPosition((int) (leftTopTarget*GLOBAL_SCALER));
+            bottom_left_drive.setTargetPosition((int) (leftBottomTarget*GLOBAL_SCALER));
+            top_right_drive.setTargetPosition((int) (rightTopTarget*GLOBAL_SCALER));
+            bottom_right_drive.setTargetPosition((int) (rightBottomTarget * GLOBAL_SCALER));
+
+            //switch to run to position mode
+            top_left_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            bottom_left_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            top_right_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            bottom_right_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            //run to position at the designated power
+            top_left_drive.setPower(power);
+            bottom_left_drive.setPower(power);
+            top_right_drive.setPower(power);
+            bottom_right_drive.setPower(power);
+
+            // wait until both motors are no longer busy running to position
+            while (opModeIsActive() && (top_left_drive.isBusy() || top_right_drive.isBusy() ||
+                    bottom_left_drive.isBusy() || bottom_right_drive.isBusy())) {}
+        }
+
+        // set motor power back to 0
+        top_left_drive.setPower(0);
+        bottom_left_drive.setPower(0);
+        top_right_drive.setPower(0);
+        bottom_right_drive.setPower(0);
+    }
+
+    private void turnRight() {
+        drive(0.6, 32, -32);
+    }
+
+    private void turnLeft() {
+        drive(0.6, -33, 33);
     }
 
     private void clawChange(boolean bool) {
