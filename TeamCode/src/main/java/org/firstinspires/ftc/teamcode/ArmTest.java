@@ -61,8 +61,6 @@ public class ArmTest extends OpMode {
     public static int targetA;
     public static int targetF;
 
-    public static double dampenerA;
-    public static double dampenerF;
 
 
     private PIDController controllerA;

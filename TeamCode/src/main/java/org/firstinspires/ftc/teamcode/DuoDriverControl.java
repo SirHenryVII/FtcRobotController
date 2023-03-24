@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.checkerframework.checker.units.qual.A;
+
 
 @TeleOp(name="DuoDriver Control")
 
@@ -17,18 +19,15 @@ public class DuoDriverControl extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor Arm;
+    private DcMotorEx Arm;
     private Servo rightClaw;
     private Servo leftClaw;
-    private DcMotor arm_fold;
-    private DcMotor top_left_drive;
-    private DcMotor top_right_drive;
-    private DcMotor bottom_left_drive;
-    private DcMotor bottom_right_drive;
-    private int arm_target;
-    private int arm_fold_target;
-    private PIDFController pidf;
-
+    private DcMotorEx arm_fold;
+    private DcMotorEx top_left_drive;
+    private DcMotorEx top_right_drive;
+    private DcMotorEx bottom_left_drive;
+    private DcMotorEx bottom_right_drive;
+private ArmHandler armHandler;
 
     @Override
     public void init() {
@@ -36,26 +35,17 @@ public class DuoDriverControl extends OpMode
         leftClaw = hardwareMap.get(Servo.class, "left-claw");
         Arm = hardwareMap.get(DcMotorEx.class, "arm");
         arm_fold = hardwareMap.get(DcMotorEx.class, "arm_fold");
-        top_left_drive = hardwareMap.get(DcMotor.class, "top_left_drive");
-        top_right_drive = hardwareMap.get(DcMotor.class, "top_right_drive");
-        bottom_left_drive = hardwareMap.get(DcMotor.class, "bottom_left_drive");
-        bottom_right_drive = hardwareMap.get(DcMotor.class, "bottom_right_drive");
+        top_left_drive = hardwareMap.get(DcMotorEx.class, "top_left_drive");
+        top_right_drive = hardwareMap.get(DcMotorEx.class, "top_right_drive");
+        bottom_left_drive = hardwareMap.get(DcMotorEx.class, "bottom_left_drive");
+        bottom_right_drive = hardwareMap.get(DcMotorEx.class, "bottom_right_drive");
 
         //PID Setup
-        arm_target = 0;
-        arm_fold_target = 0;
-
+        armHandler = new ArmHandler(Arm, arm_fold);
 
         //Motor Setups
-        Arm.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        Arm.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        Arm.setDirection(DcMotorEx.Direction.FORWARD);
-        Arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        arm_fold.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        arm_fold.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        arm_fold.setDirection(DcMotorSimple.Direction.FORWARD);
-        arm_fold.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armHandler.Init();
 
         top_left_drive.setDirection(DcMotor.Direction.REVERSE);
         top_right_drive.setDirection(DcMotor.Direction.FORWARD);
@@ -102,8 +92,8 @@ public class DuoDriverControl extends OpMode
 
         //Move to Start
         if(gamepad2.start){
-            arm_move(0);
-            arm_fold_move(0);
+            armHandler.setArmTarget(0);
+            armHandler.setArmFoldTarget(0);
         }
 
         //Open and close claw
@@ -116,35 +106,35 @@ public class DuoDriverControl extends OpMode
 
         //Arm Fold Manual Control
         if(gamepad2.left_stick_y != 0) {
-            arm_fold_move((int) (arm_fold.getCurrentPosition() + (gamepad2.left_stick_y*35)));
+            armHandler.setArmFoldTarget((int) (arm_fold.getCurrentPosition() + (gamepad2.left_stick_y*35)));
         }
         //Arm Manual Control
         if(gamepad2.right_stick_y != 0) {
-            arm_move((int) (Arm.getCurrentPosition() + (gamepad2.right_stick_y*35)));
+            armHandler.setArmTarget((int) (Arm.getCurrentPosition() + (gamepad2.right_stick_y*35)));
         }
 
         //Move arm to ground level
         if(gamepad2.a){
-            arm_move(0);
-            arm_fold_move(152);
+            armHandler.setArmTarget(0);
+            armHandler.setArmFoldTarget(152);
         }
 
         //Move arm to lowest pole
         else if(gamepad2.b){
-            arm_move(531);
-            arm_fold_move(264);
+            armHandler.setArmTarget(531);
+            armHandler.setArmFoldTarget(264);
         }
 
         //Move arm to medium pole
         else if(gamepad2.x){
-            arm_move(694);
-            arm_fold_move(280);
+            armHandler.setArmTarget(694);
+            armHandler.setArmFoldTarget(280);
         }
 
         //Move arm to highest pole
         else if(gamepad2.y){
-            arm_move(849);
-            arm_fold_move(281);
+            armHandler.setArmTarget(894);
+            armHandler.setArmFoldTarget(281);
         }
 
         //Both Gamepads
@@ -157,8 +147,6 @@ public class DuoDriverControl extends OpMode
             arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
 
-        //PID Logic
-
         //Telemetry Output
         telemetry.addData("Arm_fold", arm_fold.getCurrentPosition());
         telemetry.addData("Arm", Arm.getCurrentPosition());
@@ -167,20 +155,8 @@ public class DuoDriverControl extends OpMode
     }
 
     // Utility Functions
-    private void arm_move(int target)
-    {
-        Arm.setTargetPosition(target);
-        Arm.setPower(0.4);
-        Arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-    private void arm_fold_move(int target)
-    {
-        arm_fold.setTargetPosition(target);
-        arm_fold.setPower(0.4);
-        arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-    private void clawChange(boolean bool) {
-        if (bool) {
+    private void clawChange(boolean open) {
+        if (open) {
             rightClaw.setPosition(0.7);
             leftClaw.setPosition(0.5);
             return;
