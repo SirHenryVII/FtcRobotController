@@ -77,8 +77,13 @@ public class ArmTest extends OpMode {
         //Innit Motors
         Arm = hardwareMap.get(DcMotorEx.class, "arm");
         Arm_Fold = hardwareMap.get(DcMotorEx.class, "arm_fold");
+        Arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Arm_Fold.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Arm.setDirection(DcMotorEx.Direction.REVERSE);
         Arm_Fold.setDirection(DcMotorEx.Direction.FORWARD);
+
+        Arm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        Arm_Fold.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         //innit PID

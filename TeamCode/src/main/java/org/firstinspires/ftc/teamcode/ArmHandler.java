@@ -1,47 +1,62 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class ArmHandler {
 
     //Innit Global Variables
-    private DcMotorEx Arm;
-    private DcMotorEx Arm_Fold;
+    private final Telemetry telemetry;
+    private DcMotorEx arm;
+    private DcMotorEx armFold;
 
-    public double pA = 0, iA = 0, dA = 0, fA = 0;
-    public double pF = 0, iF = 0, dF = 0, fF = 0;
+    public double pA = 0.01, iA = 0, dA = 0.0004, fA = 0.2;
+    public double pF = 0.01, iF = 0, dF = 0.0004, fF = 0;
 
-    private final double ticks_in_degree = (28 * 18.9) / 360;
+    private final double ticksInDegree = (28 * 18.9) / 360;
 
-    public int targetA = 0;
-    public int targetF = 0;
+    private int targetA = 0;
+
+    public int getTargetArm() { return targetA; }
+    public void setTargetArm(int position) {
+        if(position > arm.getCurrentPosition()) pA = 0.01;
+        else pA = 0.0025;
+        targetA = position;
+    }
+
+    private int targetF = 0;
+    public int getTargetFold() { return targetF; }
+    public void setTargetFold(int position, double p) {
+        pF = p;
+        targetF = position;
+    }
+    public void setTargetFold(int position) {
+        pF = 0.01;
+        targetF = position;
+    }
 
     private PIDController controllerA;
     private PIDController controllerF;
 
-    public ArmHandler(DcMotorEx arm, DcMotorEx arm_fold){
-        this.Arm = arm;
-        this.Arm_Fold = arm_fold;
-    }
-
-    public void setArmTarget(int target){
-        this.targetA = target;
-    }
-
-    public void setArmFoldTarget(int target){
-        this.targetF = target;
+    public ArmHandler(Telemetry telemetry, DcMotorEx arm, DcMotorEx armFold){
+        this.telemetry = telemetry;
+        this.arm = arm;
+        this.armFold = armFold;
     }
 
     public void Init(){
 
         //Innit Motors
-        Arm.setDirection(DcMotorEx.Direction.REVERSE);
-        Arm_Fold.setDirection(DcMotorEx.Direction.FORWARD);
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        armFold.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        arm.setDirection(DcMotorEx.Direction.REVERSE);
+        armFold.setDirection(DcMotorEx.Direction.FORWARD);
+        arm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        armFold.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
 
         //innit PID
         controllerA = new PIDController(pA, iA, dA);
@@ -54,23 +69,30 @@ public class ArmHandler {
         controllerA.setPID(pA, iA, dA);
         controllerF.setPID(pF, iF, dF);
 
-        int armPos = Arm.getCurrentPosition();
-        int armFoldPos = Arm_Fold.getCurrentPosition();
+        int armPos = arm.getCurrentPosition();
+        int armFoldPos = armFold.getCurrentPosition();
 
         double pidA = controllerA.calculate(armPos, targetA);
         double pidF = controllerF.calculate(armFoldPos, targetF);
 
-        double ffA = Math.cos(Math.toRadians(targetA / ticks_in_degree)) * fA;
-        double ffF = Math.cos(Math.toRadians(targetF / ticks_in_degree)) * fF;
+        double ffA = Math.cos(Math.toRadians(targetA / ticksInDegree)) * fA;
+        double ffF = Math.cos(Math.toRadians(targetF / ticksInDegree)) * fF;
 
-        Arm.setPower(pidA + ffA);
-        Arm_Fold.setPower(pidF + ffF);
+        if((pA == 0.0025 && arm.getCurrentPosition() < targetA) || arm.getCurrentPosition() <= 10){
+            pA = 0.01;
+        }
 
-        telemetry.addData("posA ", armPos);
-        telemetry.addData("posF ", armFoldPos);
-        telemetry.addData("targetA ", targetA);
-        telemetry.addData("targetF ", targetF);
-        telemetry.update();
+        arm.setPower(pidA + ffA);
+        armFold.setPower(pidF + ffF);
+
+        telemetry.addData("targetA", targetA);
+        telemetry.addData("posA", arm.getCurrentPosition());
+        telemetry.addData("pA", pA);
+//        telemetry.addData("posA ", armPos);
+//        telemetry.addData("posF ", armFoldPos);
+//        telemetry.addData("targetA ", targetA);
+//        telemetry.addData("targetF ", targetF);
+//        telemetry.update();
 
     }
 }

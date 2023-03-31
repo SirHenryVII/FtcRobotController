@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.roadrunner.control.PIDCoefficients;
-import com.acmerobotics.roadrunner.control.PIDFController;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,8 +7,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.checkerframework.checker.units.qual.A;
 
 
 @TeleOp(name="DuoDriver Control")
@@ -27,7 +23,9 @@ public class DuoDriverControl extends OpMode
     private DcMotorEx top_right_drive;
     private DcMotorEx bottom_left_drive;
     private DcMotorEx bottom_right_drive;
-private ArmHandler armHandler;
+    private ArmHandler armHandler;
+    private boolean reverseMode;
+    private boolean slowMode;
 
     @Override
     public void init() {
@@ -41,16 +39,20 @@ private ArmHandler armHandler;
         bottom_right_drive = hardwareMap.get(DcMotorEx.class, "bottom_right_drive");
 
         //PID Setup
-        armHandler = new ArmHandler(Arm, arm_fold);
+        armHandler = new ArmHandler(telemetry, Arm, arm_fold);
 
         //Motor Setups
 
         armHandler.Init();
 
-        top_left_drive.setDirection(DcMotor.Direction.REVERSE);
-        top_right_drive.setDirection(DcMotor.Direction.FORWARD);
-        bottom_left_drive.setDirection(DcMotor.Direction.FORWARD);
-        bottom_right_drive.setDirection(DcMotor.Direction.REVERSE);
+        top_left_drive.setDirection(DcMotor.Direction.FORWARD);
+        top_right_drive.setDirection(DcMotor.Direction.REVERSE);
+        bottom_left_drive.setDirection(DcMotor.Direction.REVERSE);
+        bottom_right_drive.setDirection(DcMotor.Direction.FORWARD);
+
+        //bool inits
+        reverseMode = false;
+        slowMode = true;
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -77,64 +79,76 @@ private ArmHandler armHandler;
 
         //Gamepad 1
 
-        //Drive Vars
-        double forward = gamepad1.left_stick_y/1.25;
-        double sides = gamepad1.left_stick_x/1.25;
-        double spin = gamepad1.right_stick_x/1.75;
+        double mult = 1.25;
+        double finilize = 1;
+        if(slowMode) mult = 2.5;
+        if(reverseMode) finilize = -1;
 
-        //Drive functionality
-        top_left_drive.setPower(forward + sides + spin);
-        top_right_drive.setPower(forward - sides - spin);
-        bottom_left_drive.setPower(forward - sides + spin);
-        bottom_right_drive.setPower(forward + sides - spin);
+        //Drive Vars
+        double forward = gamepad1.left_stick_y/mult;
+        double sides = gamepad1.left_stick_x/mult;
+        double spin = gamepad1.right_stick_x/mult;
+
+        //Drive functions
+        top_left_drive.setPower((forward - sides - spin)*finilize);
+        top_right_drive.setPower((forward + sides + spin)*finilize);
+        bottom_left_drive.setPower((forward + sides - spin)*finilize);
+        bottom_right_drive.setPower((forward - sides + spin)*finilize);
+
+        //slow mode
+        if(gamepad1.left_stick_button) slowMode = !slowMode;
+
+        //reverse mode
+        if(gamepad1.right_bumper || gamepad1.left_bumper) reverseMode = !reverseMode;
+
 
         //Gamepad 2
 
         //Move to Start
         if(gamepad2.start){
-            armHandler.setArmTarget(0);
-            armHandler.setArmFoldTarget(0);
+            armHandler.setTargetArm(0);
+            armHandler.setTargetFold(0, 0.005);
         }
 
         //Open and close claw
         if(gamepad2.left_bumper) {
-            clawChange(false);
+            clawChange(true);
         }
         else if(gamepad2.right_bumper) {
-            clawChange(true);
+            clawChange(false);
         }
 
         //Arm Fold Manual Control
         if(gamepad2.left_stick_y != 0) {
-            armHandler.setArmFoldTarget((int) (arm_fold.getCurrentPosition() + (gamepad2.left_stick_y*35)));
+            armHandler.setTargetFold((int) (armHandler.getTargetFold() - (gamepad2.left_stick_y)));
         }
         //Arm Manual Control
         if(gamepad2.right_stick_y != 0) {
-            armHandler.setArmTarget((int) (Arm.getCurrentPosition() + (gamepad2.right_stick_y*35)));
+            armHandler.setTargetArm((int) (armHandler.getTargetArm() + (gamepad2.right_stick_y*2)));
         }
 
         //Move arm to ground level
         if(gamepad2.a){
-            armHandler.setArmTarget(0);
-            armHandler.setArmFoldTarget(152);
+            armHandler.setTargetArm(0);
+            armHandler.setTargetFold(125);
         }
 
         //Move arm to lowest pole
         else if(gamepad2.b){
-            armHandler.setArmTarget(531);
-            armHandler.setArmFoldTarget(264);
+            armHandler.setTargetArm(350);
+            armHandler.setTargetFold(205);
         }
 
         //Move arm to medium pole
         else if(gamepad2.x){
-            armHandler.setArmTarget(694);
-            armHandler.setArmFoldTarget(280);
+            armHandler.setTargetArm(500);
+            armHandler.setTargetFold(300);
         }
 
         //Move arm to highest pole
         else if(gamepad2.y){
-            armHandler.setArmTarget(894);
-            armHandler.setArmFoldTarget(281);
+            armHandler.setTargetArm(575);
+            armHandler.setTargetFold(275);
         }
 
         //Both Gamepads
@@ -147,6 +161,7 @@ private ArmHandler armHandler;
             arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
 
+        armHandler.Loop();
         //Telemetry Output
         telemetry.addData("Arm_fold", arm_fold.getCurrentPosition());
         telemetry.addData("Arm", Arm.getCurrentPosition());
