@@ -4,9 +4,11 @@ import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
+import org.firstinspires.ftc.teamcode.IController;
+
 import java.util.Arrays;
 
-public class VEPOSController {
+public class VEPOSController implements IController {
     final MotorEx parent;
     final MotorEx[] followers;
 
@@ -31,6 +33,7 @@ public class VEPOSController {
     public void loop() {
         parent.setFeedforwardCoefficients(aKs, aKv, aKa);
         parent.setVeloCoefficients(aKp, aKi, aKd);
+        uhohHardcodedGroundPositionCheck();
 
         int cPos = parent.getCurrentPosition();
         int posError = targetPosition - cPos;
@@ -48,6 +51,10 @@ public class VEPOSController {
         parent.setVelocity(targetVelocity);
         double follPow = parent.motorEx.getPower();
         Arrays.stream(followers).forEach(motorEx -> motorEx.set(follPow));
+    }
+
+    public void uhohHardcodedGroundPositionCheck() {
+        if(targetPosition==550 && parent.getCurrentPosition()>725) targetPosition = 750;
     }
 
     public void setParameters(double aKp, double aKi, double aKd, double aKf, double aKs, double aKv, double aKa, double maxVelo, double minVelo, double maxTErr, double aKvp, double aKvi) {

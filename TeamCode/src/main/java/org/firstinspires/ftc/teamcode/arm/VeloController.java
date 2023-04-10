@@ -24,7 +24,7 @@ public class VeloController extends LinearOpMode {
     public static int foldPos;
 
     public static double aKp = 0.00332, aKi = 0.00254, aKd = 0.00322, aKf = 0, aKs = 0, aKv = 1, aKa = 0;
-    public static double maxVelo = 2500, minVelo = -1000, maxTErr = 1500, aKvp = 3.5, aKvi = 0.4;
+    public static double maxVelo = 2500, minVelo = -2500, maxTErr = 1500, aKvp = 5, aKvi = 0.4;
     public VEPOSController armController;
     public VEPOSController foldController;
 
