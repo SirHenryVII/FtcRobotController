@@ -168,12 +168,12 @@ public class    DuoDriverControl extends OpMode
     // Utility Functions
     private void clawChange(boolean open) {
         if (open) {
-            rightClaw.setPosition(0.7);
-            leftClaw.setPosition(0.5);
+            rightClaw.setPosition(1);
+            leftClaw.setPosition(0);
             return;
         }
         leftClaw.setPosition(1);
-        rightClaw.setPosition(0);
+        rightClaw.setPosition(0.3);
     }
     @Override
     public void stop() {

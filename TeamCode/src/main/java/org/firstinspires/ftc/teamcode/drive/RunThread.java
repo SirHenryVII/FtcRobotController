@@ -6,18 +6,20 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.IController;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class RunThread implements Runnable {
     final IController[] controllers;
-    final LinearOpMode opMode;
+    final AtomicBoolean enable;
 
-    public RunThread(LinearOpMode opMode, IController... controllers) {
+    public RunThread(AtomicBoolean enable, IController... controllers) {
         this.controllers = controllers;
-        this.opMode = opMode;
+        this.enable = enable;
     }
 
     @Override
     public void run() {
-        while(opMode.opModeIsActive()) {
+        while(!enable.get()) {
             long time = System.currentTimeMillis();
             for(IController iController : controllers) iController.loop();
 
