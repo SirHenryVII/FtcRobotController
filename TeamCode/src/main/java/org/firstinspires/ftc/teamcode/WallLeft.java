@@ -23,6 +23,8 @@ package org.firstinspires.ftc.teamcode;
 
 import android.annotation.SuppressLint;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -30,6 +32,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.arm.ArmHandler;
+import org.firstinspires.ftc.teamcode.drive.ArmThread;
+import org.firstinspires.ftc.teamcode.drive.RunThread;
+import org.firstinspires.ftc.teamcode.drive.VAPDController;
 import org.firstinspires.ftc.teamcode.rr.SampleMecanumDrive;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -37,6 +43,7 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Autonomous(name = "Auton Left")
 public class WallLeft extends LinearOpMode {
@@ -44,16 +51,8 @@ public class WallLeft extends LinearOpMode {
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
 
-    private DcMotor top_left_drive;
-    private DcMotor top_right_drive;
-    private DcMotor bottom_left_drive;
-    private DcMotor bottom_right_drive;
-    private DcMotor leftArm;
-    private DcMotor rightArm;
     private Servo rightClaw;
     private Servo leftClaw;
-    private DcMotor arm_fold;
-    private SampleMecanumDrive MecDrive;
     ElapsedTime runtime = new ElapsedTime();
 
     // Lens intrinsics
@@ -75,6 +74,10 @@ public class WallLeft extends LinearOpMode {
     final int RIGHT = 3;
 
     AprilTagDetection tagOfInterest = null;
+
+    ArmHandler armHandler;
+    VAPDController driveController;
+    private final AtomicBoolean threadingEnabled = new AtomicBoolean(true);
 
     @Override
     public void runOpMode() {
@@ -99,82 +102,44 @@ public class WallLeft extends LinearOpMode {
         telemetry.setMsTransmissionInterval(50);
 
         //Innit Motors
-        top_left_drive = hardwareMap.get(DcMotor.class, "top_left_drive");
-        top_right_drive = hardwareMap.get(DcMotor.class, "top_right_drive");
-        bottom_left_drive = hardwareMap.get(DcMotor.class, "bottom_left_drive");
-        bottom_right_drive = hardwareMap.get(DcMotor.class, "bottom_right_drive");
-        rightClaw = hardwareMap.get(Servo.class, "right-claw");
-        leftClaw = hardwareMap.get(Servo.class, "left-claw");
-        leftArm = hardwareMap.get(DcMotor.class, "left-arm");
-        rightArm = hardwareMap.get(DcMotor.class, "right-arm");
-        arm_fold = hardwareMap.get(DcMotor.class, "arm_fold");
+        driveController = new VAPDController(
+                hardwareMap.get(DcMotor.class, "top_left_drive"),
+                hardwareMap.get(DcMotor.class, "top_right_drive"),
+                hardwareMap.get(DcMotor.class, "bottom_left_drive"),
+                hardwareMap.get(DcMotor.class, "bottom_right_drive"));
+        driveController.scalerMap.add(0, 0.1);
+        driveController.scalerMap.add(.25, 1);
+        driveController.scalerMap.add(.75, 1);
+        driveController.scalerMap.add(1.0, 0.1);
 
-        /*
-         * The INIT-loop:
-         * This REPLACES waitForStart!
-         */
-
-        //Road Runner Innit
-        MecDrive = new SampleMecanumDrive(hardwareMap);
-
-
-
-        telemetry.addLine("Initialization Complete");
-        telemetry.update();
-
-        while (!isStarted() && !isStopRequested()) {
-            sleep(20);
-        }
-
-        runtime.reset();
+        armHandler = new ArmHandler(hardwareMap);
 
         //Detection
-        boolean detectionPassed = false;
 
-        while (!detectionPassed) {
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
+        while (!isStarted() && !isStopRequested()) {
             try {
-                while (runtime.seconds() < 3 && tagOfInterest == null) {
-                    //Put Detections into ArrayList
-                    ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
+                //Put Detections into ArrayList
+                ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
 
-                    //If a detection is found
-                    if (!currentDetections.isEmpty()) {
-                        telemetry.addLine("It is detecting something, just not any of our tags");
-                        //For every detection (most likely just one)
-                        for (AprilTagDetection tag : currentDetections) {
-                            //Check if detection is one of the tags we are looking for
-                            if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
-                                //If detection has one of the tags, set "tagOfInterest" to that tag
-                                tagOfInterest = tag;
-                                break;
-                            }
+                //If a detection is found
+                if (!currentDetections.isEmpty()) {
+                    //For every detection (most likely just one)
+                    for (AprilTagDetection tag : currentDetections) {
+                        //Check if detection is one of the tags we are looking for
+                        if (tag.id == LEFT || tag.id == MIDDLE || tag.id == RIGHT) {
+                            //If detection has one of the tags, set "tagOfInterest" to that tag
+                            tagOfInterest = tag;
+                            break;
                         }
-                        //else if a detection in not found
-                    } else telemetry.addLine("Don't see any tags :(");
-
-                    telemetry.addData("Time Elapsed", runtime.milliseconds());
-                    telemetry.update();
-                    sleep(20);
-                }
-
-                camera.closeCameraDevice();
-
-                if (tagOfInterest != null) {
-                    switch (tagOfInterest.id) {
-                        case LEFT:
-                            telemetry.addLine("Parking: Left (1)");
-                        case MIDDLE:
-                            telemetry.addLine("Parking: Middle (2)");
-                        case RIGHT:
-                            telemetry.addLine("Parking: Right (3)");
                     }
-                    telemetry.addLine("Tag snapshot:\n");
-                    tagToTelemetry(tagOfInterest);
-                } else {
-                    telemetry.addLine("Tag was not sighted :(");
-                    telemetry.addLine("Parking: Middle (2) (Default)");
                 }
-                detectionPassed = true;
+
+                telemetry.addData("CurrentDetection: ", tagOfInterest.id);
+                telemetry.addData("Time Elapsed", runtime.milliseconds());
+                telemetry.update();
+                sleep(20);
 
             } catch (Throwable ignored) {
                 telemetry.addLine("Tag crashed, let's try again!");
@@ -184,33 +149,43 @@ public class WallLeft extends LinearOpMode {
             sleep(20);
         }
 
+        runtime.reset();
+
+        camera.closeCameraDevice();
+
+        //add parking telemetry
+        if (tagOfInterest != null) {
+            switch (tagOfInterest.id) {
+                case LEFT:
+                    telemetry.addLine("Parking: Left (1)");
+                case MIDDLE:
+                    telemetry.addLine("Parking: Middle (2)");
+                case RIGHT:
+                    telemetry.addLine("Parking: Right (3)");
+            }
+            telemetry.addLine("Tag snapshot:\n");
+            tagToTelemetry(tagOfInterest);
+        } else {
+            telemetry.addLine("Tag was not sighted :(");
+            telemetry.addLine("Parking: Middle (2) (Default)");
+        }
+
+        telemetry.update();
+
+
+        //start arm/drive threads
+        new Thread(new RunThread(threadingEnabled, driveController)).start();
+        new Thread(new ArmThread(threadingEnabled, armHandler)).start();
+
+
+
         //Drive Functions
+        clawChange(false);
+
 
     }
 
     // Utility Functions
-    private void arm_move(int target)
-    {
-        leftArm.setTargetPosition(-target);
-        rightArm.setTargetPosition(target);
-        leftArm.setPower(1);
-        rightArm.setPower(1);
-        leftArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-
-    private void arm_fold_move(int target) {
-        arm_fold.setTargetPosition(target);
-        arm_fold.setPower(1);
-        arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-
-    private boolean isBusy() {
-        if(leftArm.isBusy() && !rightArm.isBusy()) return true;
-        if(!leftArm.isBusy() && rightArm.isBusy()) return true;
-        if(!leftArm.isBusy() && !rightArm.isBusy()) return true;
-        return false;
-    }
 
     @SuppressLint("DefaultLocale")
     void tagToTelemetry(AprilTagDetection detection) {
