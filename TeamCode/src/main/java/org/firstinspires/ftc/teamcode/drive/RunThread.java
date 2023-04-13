@@ -19,12 +19,12 @@ public class RunThread implements Runnable {
 
     @Override
     public void run() {
-        while(!enable.get()) {
+        while(enable.get()) {
             long time = System.currentTimeMillis();
             for(IController iController : controllers) iController.loop();
 
             try {
-                sleep(100-(System.currentTimeMillis()-time));
+                sleep(150-(System.currentTimeMillis()-time));
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

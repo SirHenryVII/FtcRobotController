@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class ArmHandler {
     public static enum State {
-        HIGH(1300,1500),
-        MEDIUM(1200,1700),
+        HIGH(1200,1450),
+        MEDIUM(900 ,1350),
         LOW(600,1000),
         GROUND(0,550),
         START(0,0);
@@ -51,8 +51,17 @@ public class ArmHandler {
         foldController.setTargetPosition(armState.fold);
     }
 
+    public void setPosition(int arm, int fold) {
+        armController.setTargetPosition(arm);
+        foldController.setTargetPosition(fold);
+    }
+
     public void loop() {
         armController.loop();
         foldController.loop();
+    }
+
+    public boolean isBusy() {
+        return armController.parent.motorEx.isBusy() || foldController.parent.motorEx.isBusy();
     }
 }

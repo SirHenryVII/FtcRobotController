@@ -15,39 +15,35 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class VAPDController implements IController {
+public class VAPDController {
     public ScalerMap scalerMap = new ScalerMap();
 
 
-    private List<DcMotor> motors = new ArrayList<>();
-    private List<Integer> positions = new ArrayList<>();
+    private List<MotorEx> motors = new ArrayList<>();
 
-    private final DcMotor topLeft;
-    private final DcMotor topRight;
-    private final DcMotor bottomLeft;
-    private final DcMotor bottomRight;
+    private final MotorEx topLeft;
+    private final MotorEx topRight;
+    private final MotorEx bottomLeft;
+    private final MotorEx bottomRight;
 
     private Integer topLeftP = 1;
     private Integer topRightP = 1;
     private Integer bottomLeftP = 1;
     private Integer bottomRightP = 1;
+    double power = 0.75;
 
-    public VAPDController(DcMotor topLeft, DcMotor topRight, DcMotor bottomLeft, DcMotor bottomRight) {
+    public VAPDController(MotorEx topLeft, MotorEx topRight, MotorEx bottomLeft, MotorEx bottomRight) {
         this.topLeft = topLeft; this.topRight = topRight; this.bottomLeft = bottomLeft; this.bottomRight = bottomRight;
         motors.add(topLeft); motors.add(topRight); motors.add(bottomLeft); motors.add(bottomRight);
-        positions.add(topLeftP); positions.add(topRightP); positions.add(bottomLeftP); positions.add(bottomRightP);
 
-        topRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        bottomLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        topLeft.setInverted(true);
+        bottomRight.setInverted(true);
 
         motors.forEach(motorEx -> {
-            motorEx.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        });
-        topLeft.setTargetPosition(topLeftP); topRight.setTargetPosition(topRightP);
-        bottomRight.setTargetPosition(bottomRightP); bottomLeft.setTargetPosition(bottomLeftP);
-        motors.forEach(motorEx -> {
-            motorEx.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            motorEx.setPower(0.5);
+            motorEx.motorEx.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            motorEx.motorEx.setTargetPosition(1);
+            motorEx.motorEx.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motorEx.motorEx.setPower(power);
         });
     }
 
@@ -56,44 +52,29 @@ public class VAPDController implements IController {
         topRightP += pos;
         bottomLeftP += pos;
         bottomRightP -= pos;
-        positions.clear();
-        positions.add(topLeftP); positions.add(topRightP); positions.add(bottomLeftP); positions.add(bottomRightP);
+        topLeft.motorEx.setTargetPosition(topLeftP); topRight.motorEx.setTargetPosition(topRightP);
+        bottomRight.motorEx.setTargetPosition(bottomRightP); bottomLeft.motorEx.setTargetPosition(bottomLeftP);
     }
     public void spin(int pos) {
-        topLeftP -= pos;
-        topRightP += pos;
-        bottomLeftP -= pos;
-        bottomRightP += pos;
-        positions.clear();
-        positions.add(topLeftP); positions.add(topRightP); positions.add(bottomLeftP); positions.add(bottomRightP);
+        topLeftP += pos;
+        topRightP -= pos;
+        bottomLeftP += pos;
+        bottomRightP -= pos;
+        topLeft.motorEx.setTargetPosition(topLeftP); topRight.motorEx.setTargetPosition(topRightP);
+        bottomRight.motorEx.setTargetPosition(bottomRightP); bottomLeft.motorEx.setTargetPosition(bottomLeftP);
     }
     public void straight(int pos) {
         topLeftP += pos;
         topRightP += pos;
         bottomLeftP += pos;
         bottomRightP += pos;
-        positions.clear();
-        positions.add(topLeftP); positions.add(topRightP); positions.add(bottomLeftP); positions.add(bottomRightP);
+        topLeft.motorEx.setTargetPosition(topLeftP); topRight.motorEx.setTargetPosition(topRightP);
+        bottomRight.motorEx.setTargetPosition(bottomRightP); bottomLeft.motorEx.setTargetPosition(bottomLeftP);
     }
 
-    public void loop() {
-        topLeft.setTargetPosition(topLeftP); topRight.setTargetPosition(topRightP);
-        bottomRight.setTargetPosition(bottomRightP); bottomLeft.setTargetPosition(bottomLeftP);
-//        int i = 3;
-//        for(int i = 0; i < 4; i++) {
-//            MotorEx target = motors.get(i);
-//            Integer posT = positions.get(i);
-//
-//            int cPos = target.getCurrentPosition();
-//            int posError = posT - cPos;
-//
-//            double perc = 0;
-//            if(posT != 0) perc = (float) cPos / (float) posT;
-//            double scaler = scalerMap.get(Math.abs(perc));
-//
-//            System.out.println("Motor: " + i + " | " + posError + "(" + cPos + ") | " + scaler + " | % | " + perc );
-//            target.setVelocity(posError * Math.abs(scaler));
-//        }
+    public boolean isBusy() {
+        return topLeft.motorEx.isBusy() || topRight.motorEx.isBusy()
+                || bottomLeft.motorEx.isBusy() || bottomRight.motorEx.isBusy();
     }
 
 }

@@ -22,9 +22,6 @@ public class VeloController extends LinearOpMode {
 
     public static int armPos;
     public static int foldPos;
-
-    public static double aKp = 0.00332, aKi = 0.00254, aKd = 0.00322, aKf = 0, aKs = 0, aKv = 1, aKa = 0;
-    public static double maxVelo = 2500, minVelo = -2500, maxTErr = 1500, aKvp = 5, aKvi = 0.4;
     public VEPOSController armController;
     public VEPOSController foldController;
 
@@ -48,6 +45,8 @@ public class VeloController extends LinearOpMode {
 
         armController = new VEPOSController(armLeft, armRight);
         foldController = new VEPOSController(fold);
+
+        foldController.setParameters(0.00332, 0.00254, 0.00322, 0,0,1,0,2500,-2500,1500,5,0.4);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -73,8 +72,6 @@ public class VeloController extends LinearOpMode {
 
         while(opModeIsActive()) {
             long time = System.currentTimeMillis();
-
-            foldController.setParameters(aKp, aKi, aKd, aKf, aKs, aKv, aKa, maxVelo, minVelo, maxTErr, aKvp, aKvi);
 
             armController.setTargetPosition(armPos);
             foldController.setTargetPosition(foldPos);
