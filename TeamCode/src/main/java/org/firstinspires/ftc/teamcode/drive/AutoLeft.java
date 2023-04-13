@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Autonomous(name = "Auton Left")
 public class AutoLeft extends LinearOpMode {
     public enum AutoCones {
-        FIVE(425, 975),
+        FIVE(400, 975),
         FOUR(375, 975),
         THREE(330, 940),
         TWO(300, 940),
@@ -144,7 +144,7 @@ public class AutoLeft extends LinearOpMode {
         straight(1.4);
         driveController.spin(-1250);
         while(driveController.isBusy()) {}
-        straight(0.46);
+        straight(0.49);
         while(driveController.isBusy()) {}
         armHandler.setPosition(AutoCones.FIVE.arm, AutoCones.FIVE.fold);
         sleep(2000);
@@ -156,18 +156,20 @@ public class AutoLeft extends LinearOpMode {
         while(armHandler.isBusy()) {}
         armHandler.setPosition(1000, 1400);
         sleep(2000);
-        straight(-1.8);
+        straight(-1.65);
         while(driveController.isBusy()) {}
-        driveController.spin(-510);
+        driveController.spin(-480);
         sleep(1000);
         while(driveController.isBusy()) {}
+        straight(0.1);
         clawChange(true);
         sleep(2000);
+        straight(-0.1);
         armHandler.setState(ArmHandler.State.START);
-        driveController.spin(510);
+        driveController.spin(480);
         sleep(2000);
         while(driveController.isBusy()) {}
-        straight(1.4);
+        straight(1.2);
         driveController.strafe(1400);
         sleep(2000);
         while(driveController.isBusy()) {}
