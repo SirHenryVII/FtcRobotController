@@ -6,10 +6,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class ArmHandler {
     public static enum State {
-        HIGH(1200,1450),
-        MEDIUM(900 ,1350),
-        LOW(600,1000),
-        GROUND(0,550),
+        HIGH(1100,1450),
+        MEDIUM(900 ,1450),
+        LOW(500,1100),
+        GROUND(0,500),
         START(0,0);
         final int arm;
         final int fold;
@@ -20,8 +20,8 @@ public class ArmHandler {
         }
     }
 
-    final VEPOSController armController;
-    final VEPOSController foldController;
+    public final VEPOSController armController;
+    public final VEPOSController foldController;
 
     public ArmHandler(HardwareMap hardwareMap) {
         MotorEx armLeft = new MotorEx(hardwareMap, "arm-left",28*(5.23 * 3.61 * 3.61), 6000/(5.23 * 3.61 * 3.61));

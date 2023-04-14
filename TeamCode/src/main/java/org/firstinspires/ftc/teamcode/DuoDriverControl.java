@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @TeleOp(name="DuoDriver Control")
 
-public class    DuoDriverControl extends OpMode
+public class DuoDriverControl extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -28,10 +28,14 @@ public class    DuoDriverControl extends OpMode
     private DcMotorEx bottom_left_drive;
     private DcMotorEx bottom_right_drive;
     private boolean reverseMode;
+    private boolean reverseTrigger;
     private boolean slowMode;
+    private boolean slowTrigger;
+
+    private long elapsed = System.currentTimeMillis();
 
     private ArmHandler armHandler;
-    private AtomicBoolean armTickEnabled = new AtomicBoolean(true);
+//    private AtomicBoolean armTickEnabled = new AtomicBoolean(true);
 
     @Override
     public void init() {
@@ -72,7 +76,7 @@ public class    DuoDriverControl extends OpMode
     @Override
     public void start() {
         runtime.reset();
-        new Thread(new ArmThread(armTickEnabled, armHandler)).start();
+//        new Thread(new ArmThread(armTickEnabled, armHandler)).start();
     }
 
     /*
@@ -91,7 +95,8 @@ public class    DuoDriverControl extends OpMode
         //Drive Vars
         double forward = gamepad1.left_stick_y/div;
         double sides = gamepad1.left_stick_x/div;
-        double spin = gamepad1.right_stick_x/div;
+        double spin = -(gamepad1.right_stick_x/div);
+        if(reverseMode) spin = spin*-1;
 
         //Drive functions
         top_left_drive.setPower((forward - sides + spin)*finilize);
@@ -100,10 +105,18 @@ public class    DuoDriverControl extends OpMode
         bottom_right_drive.setPower((forward - sides - spin)*finilize);
 
         //slow mode
-        if(gamepad1.left_stick_button) slowMode = !slowMode;
+        if(gamepad1.left_bumper && !slowTrigger) {
+            slowMode = !slowMode;
+            slowTrigger = true;
+        }
+        if(!gamepad1.left_bumper) slowTrigger = false;
 
         //reverse mode
-        if(gamepad1.right_stick_button) reverseMode = !reverseMode;
+        if(gamepad1.right_bumper && !reverseTrigger) {
+            reverseMode = !reverseMode;
+            reverseTrigger = true;
+        }
+        if(!gamepad1.right_bumper) reverseTrigger = false;
 
 
         //Gamepad 2
@@ -122,12 +135,12 @@ public class    DuoDriverControl extends OpMode
         }
 
         //Arm Fold Manual Control
-        if(gamepad2.left_stick_y != 0) {
-//            armHandlerO.setTargetFold((int) (armHandlerO.getTargetFold() - (gamepad2.left_stick_y)));
+        if(gamepad2.right_stick_y != 0) {
+            armHandler.setPosition((int) (armHandler.armController.targetPosition+(gamepad2.right_stick_y*2)), armHandler.foldController.targetPosition);
         }
         //Arm Manual Control
-        if(gamepad2.right_stick_y != 0) {
-//            armHandlerO.setTargetArm((int) (armHandlerO.getTargetArm() + (gamepad2.right_stick_y*2)));
+        if(gamepad2.left_stick_y != 0) {
+            armHandler.setPosition(armHandler.armController.targetPosition, (int) (armHandler.foldController.targetPosition+(gamepad2.left_stick_y*1.5)));
         }
 
         //Move arm to ground level
@@ -161,7 +174,13 @@ public class    DuoDriverControl extends OpMode
         }
 
         //Telemetry Output
+        if(System.currentTimeMillis()-elapsed>=100) {
+            armHandler.loop();
+            elapsed = System.currentTimeMillis();
+        }
         telemetry.addData("Status", "Run Time: " + runtime.milliseconds());
+        telemetry.addData("FoldT", armHandler.foldController.targetPosition);
+        telemetry.addData("Fold", armHandler.foldController.parent.getCurrentPosition());
         telemetry.update();
     }
 
@@ -169,7 +188,7 @@ public class    DuoDriverControl extends OpMode
     private void clawChange(boolean open) {
         if (open) {
             rightClaw.setPosition(1);
-            leftClaw.setPosition(0);
+            leftClaw.setPosition(0.5);
             return;
         }
         leftClaw.setPosition(1);
@@ -177,7 +196,7 @@ public class    DuoDriverControl extends OpMode
     }
     @Override
     public void stop() {
-        armTickEnabled.set(false);
+//        armTickEnabled.set(false);
     }
 
 }

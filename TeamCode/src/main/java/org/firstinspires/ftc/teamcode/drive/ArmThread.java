@@ -27,8 +27,7 @@ public class ArmThread implements Runnable {
 
             try {
                 sleep(150-(System.currentTimeMillis()-time));
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            } catch (InterruptedException ignored) {
             }
         }
     }

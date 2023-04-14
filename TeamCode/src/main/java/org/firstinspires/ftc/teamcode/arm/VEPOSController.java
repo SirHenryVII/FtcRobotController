@@ -9,12 +9,12 @@ import org.firstinspires.ftc.teamcode.IController;
 import java.util.Arrays;
 
 public class VEPOSController implements IController {
-    final MotorEx parent;
+    public final MotorEx parent;
     final MotorEx[] followers;
 
     public int targetPosition;
     public double aKp = 0.00332, aKi = 0.00254, aKd = 0.00322, aKf = 0, aKs = 0, aKv = 1, aKa = 0;
-    public double maxVelo = 2500, minVelo = -1000, maxTErr = 1500, aKvp = 3.5, aKvi = 0.4;
+    public double maxVelo = 2500, minVelo = -1000, maxTErr = 1500, aKvp = 3.5, aKvi = 0.5;
     public int totalErr;
 
 
@@ -54,7 +54,7 @@ public class VEPOSController implements IController {
     }
 
     public void uhohHardcodedGroundPositionCheck() {
-        if(targetPosition==550 && parent.getCurrentPosition()>725) targetPosition = 750;
+        if(targetPosition==500 && parent.getCurrentPosition()>550) targetPosition = 850;
     }
 
     public void setParameters(double aKp, double aKi, double aKd, double aKf, double aKs, double aKv, double aKa, double maxVelo, double minVelo, double maxTErr, double aKvp, double aKvi) {
