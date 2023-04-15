@@ -21,8 +21,6 @@
 
 package org.firstinspires.ftc.teamcode.drive;
 
-import static java.lang.Thread.sleep;
-
 import android.annotation.SuppressLint;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -35,14 +33,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.arm.ArmHandler;
 import org.openftc.apriltag.AprilTagDetection;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Autonomous(name = "Auton Left")
-public class AutoLeft extends LinearOpMode {
+@Autonomous(name = "Auton Right High")
+public class AutoRightHigh extends LinearOpMode {
     public enum AutoCones {
-        FIVE(300, 940),
+        FIVE(280, 960),
         FOUR(375, 975),
         THREE(330, 940),
         TWO(300, 940),
@@ -105,15 +101,21 @@ public class AutoLeft extends LinearOpMode {
         }
         camera.camera.closeCameraDevice();
 
+        double parkMult = 0;
         //add parking telemetry
         if (camera.tagOfInterest != null) {
             switch (camera.tagOfInterest.id) {
                 case 1:
+                    parkMult = 1.15;
                     telemetry.addLine("Parking: Left (1)");
+                    break;
                 case 2:
                     telemetry.addLine("Parking: Middle (2)");
+                    break;
                 case 3:
+                    parkMult = -1.15;
                     telemetry.addLine("Parking: Right (3)");
+                    break;
             }
             telemetry.addLine("Tag snapshot:\n");
             tagToTelemetry(camera.tagOfInterest);
@@ -129,51 +131,65 @@ public class AutoLeft extends LinearOpMode {
 
 
         //Drive Functions
-        armHandler.setState(ArmHandler.State.MEDIUM);
-        straight(1.04);
-        driveController.spin(450);
-        while(driveController.isBusy()) {}
+        straight(1.275);
+        strafe(1.4);
+        armHandler.setPosition(1000, 0);
+        driveController.spin(-600);
+        sleep(1000);
+        while(armHandler.isBusy()) {}
+        armHandler.setPosition(900, ArmHandler.State.HIGH.fold);
+        sleep(1000);
         while(armHandler.isBusy()) {}
         clawChange(true);
-        sleep(1000);
-        driveController.spin(-450);
-        while(driveController.isBusy()) {}
-        driveController.strafe(100);
-        while(driveController.isBusy()) {}
+        sleep(2000);
         armHandler.setState(ArmHandler.State.START);
-        straight(1.35);
-        driveController.spin(-1250);
-        while(driveController.isBusy()) {}
-        straight(0.443);
-        while(driveController.isBusy()) {}
-        armHandler.setPosition(AutoCones.FIVE.arm, AutoCones.FIVE.fold);
         sleep(2000);
         while(armHandler.isBusy()) {}
-        clawChange(false);
-        sleep(2000);
-        armHandler.setPosition(AutoCones.FIVE.arm, 600);
+        driveController.spin(600);
+        while(driveController.isBusy()) {}
+        strafe(-1.4);
+        strafe(parkMult);
         sleep(1000);
         while(armHandler.isBusy()) {}
-        armHandler.setPosition(1000, 1400);
-        sleep(2000);
-        straight(-1.654);
-        while(driveController.isBusy()) {}
-        sleep(1000);
-        driveController.spin(-480);
-        sleep(1000);
-        while(driveController.isBusy()) {}
-        straight(0.1);
-        clawChange(true);
-        sleep(2000);
-        straight(-0.1);
-        armHandler.setState(ArmHandler.State.START);
-        driveController.spin(480);
-        sleep(2000);
-        while(driveController.isBusy()) {}
-        straight(1.2);
-        driveController.strafe(1400);
-        sleep(2000);
-        while(driveController.isBusy()) {}
+//        while(driveController.isBusy()) {}
+//        armHandler.setState(ArmHandler.State.START);
+//        straight(0.2);
+//        while(driveController.isBusy()) {}
+//        driveController.strafe((int) (1300*parkMult));
+//        while(driveController.isBusy()) {}
+//        straight(1.35);
+//        driveController.spin(-1250);
+//        while(driveController.isBusy()) {}
+//        straight(0.443);
+//        while(driveController.isBusy()) {}
+//        armHandler.setPosition(AutoCones.FIVE.arm, AutoCones.FIVE.fold);
+//        sleep(2000);
+//        while(armHandler.isBusy()) {}
+//        clawChange(false);
+//        sleep(2000);
+//        armHandler.setPosition(AutoCones.FIVE.arm, 600);
+//        sleep(1000);
+//        while(armHandler.isBusy()) {}
+//        armHandler.setPosition(1000, 1400);
+//        sleep(2000);
+//        straight(-1.654);
+//        while(driveController.isBusy()) {}
+//        sleep(1000);
+//        driveController.spin(-480);
+//        sleep(1000);
+//        while(driveController.isBusy()) {}
+//        straight(0.1);
+//        clawChange(true);
+//        sleep(2000);
+//        straight(-0.1);
+//        armHandler.setState(ArmHandler.State.START);
+//        driveController.spin(480);
+//        sleep(2000);
+//        while(driveController.isBusy()) {}
+//        straight(1.2);
+//        driveController.strafe(1400);
+//        sleep(2000);
+//        while(driveController.isBusy()) {}
 //        armHandler.setState(ArmHandler.State.START);
 //        driveController.spin(1250);
 //        straight(-2.5);
@@ -198,6 +214,13 @@ public class AutoLeft extends LinearOpMode {
 
     public void straight(double mult) {
         driveController.straight((int) (mult*1200));
+        sleep(1000);
+        while(driveController.isBusy()) {}
+    }
+
+    public void strafe(double mult) {
+        driveController.strafe((int) (mult*1200));
+        sleep(1000);
         while(driveController.isBusy()) {}
     }
 

@@ -6,13 +6,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class ArmHandler {
     public static enum State {
-        HIGH(1100,1450),
-        MEDIUM(900 ,1450),
-        LOW(500,1100),
+        HIGH(1100,1500),
+        MEDIUM(900 ,1500),
+        LOW(400,1250),
         GROUND(0,500),
         START(0,0);
-        final int arm;
-        final int fold;
+        public final int arm;
+        public final int fold;
 
         State(int arm, int fold) {
             this.arm = arm;

@@ -10,7 +10,7 @@ import java.util.Arrays;
 
 public class VEPOSController implements IController {
     public final MotorEx parent;
-    final MotorEx[] followers;
+    public final MotorEx[] followers;
 
     public int targetPosition;
     public double aKp = 0.00332, aKi = 0.00254, aKd = 0.00322, aKf = 0, aKs = 0, aKv = 1, aKa = 0;
@@ -54,7 +54,7 @@ public class VEPOSController implements IController {
     }
 
     public void uhohHardcodedGroundPositionCheck() {
-        if(targetPosition==500 && parent.getCurrentPosition()>550) targetPosition = 850;
+        if(targetPosition==500 && parent.getCurrentPosition()>525) targetPosition = 800;
     }
 
     public void setParameters(double aKp, double aKi, double aKd, double aKf, double aKs, double aKv, double aKa, double maxVelo, double minVelo, double maxTErr, double aKvp, double aKvi) {

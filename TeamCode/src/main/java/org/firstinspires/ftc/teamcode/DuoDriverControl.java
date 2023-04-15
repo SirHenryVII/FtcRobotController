@@ -31,6 +31,8 @@ public class DuoDriverControl extends OpMode
     private boolean reverseTrigger;
     private boolean slowMode;
     private boolean slowTrigger;
+    private boolean fastFoldTrigger;
+    private boolean fastFold = false;
 
     private long elapsed = System.currentTimeMillis();
 
@@ -110,6 +112,11 @@ public class DuoDriverControl extends OpMode
             slowTrigger = true;
         }
         if(!gamepad1.left_bumper) slowTrigger = false;
+        if(gamepad2.left_bumper && !fastFoldTrigger) {
+            fastFoldTrigger = true;
+            fastFold = !fastFold;
+        }
+        if(!gamepad2.left_bumper) fastFoldTrigger = false;
 
         //reverse mode
         if(gamepad1.right_bumper && !reverseTrigger) {
@@ -140,7 +147,9 @@ public class DuoDriverControl extends OpMode
         }
         //Arm Manual Control
         if(gamepad2.left_stick_y != 0) {
-            armHandler.setPosition(armHandler.armController.targetPosition, (int) (armHandler.foldController.targetPosition+(gamepad2.left_stick_y*1.5)));
+            double foldMult = 1.5;
+            if(fastFold) foldMult = 3;
+            armHandler.setPosition(armHandler.armController.targetPosition, (int) (armHandler.foldController.targetPosition+(gamepad2.left_stick_y*foldMult)));
         }
 
         //Move arm to ground level
@@ -165,12 +174,9 @@ public class DuoDriverControl extends OpMode
 
         //Both Gamepads
         if(gamepad1.back || gamepad2.back) {
-//            Arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//            Arm.setTargetPosition(0);
-//            Arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//            arm_fold.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//            arm_fold.setTargetPosition(0);
-//            arm_fold.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            armHandler.armController.parent.resetEncoder();
+            armHandler.armController.followers[0].resetEncoder();
+            armHandler.foldController.parent.resetEncoder();
         }
 
         //Telemetry Output
