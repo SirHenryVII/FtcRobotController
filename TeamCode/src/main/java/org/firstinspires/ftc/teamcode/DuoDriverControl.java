@@ -194,10 +194,10 @@ public class DuoDriverControl extends OpMode
     private void clawChange(boolean open) {
         if (open) {
             rightClaw.setPosition(1);
-            leftClaw.setPosition(0.5);
+            leftClaw.setPosition(0);
             return;
         }
-        leftClaw.setPosition(1);
+        leftClaw.setPosition(0.5);
         rightClaw.setPosition(0.3);
     }
     @Override

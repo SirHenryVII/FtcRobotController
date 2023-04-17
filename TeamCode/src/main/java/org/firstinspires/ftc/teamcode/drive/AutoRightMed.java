@@ -29,6 +29,7 @@ import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.arm.ArmHandler;
 import org.openftc.apriltag.AprilTagDetection;
@@ -61,7 +62,6 @@ public class AutoRightMed extends LinearOpMode {
     };
     //Innit Global Variables
     public Camera camera;
-
     private Servo rightClaw;
     private Servo leftClaw;
 
@@ -95,7 +95,12 @@ public class AutoRightMed extends LinearOpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         clawChange(false);
 
-        while (!isStarted() && !isStopRequested()) {
+        while ((!isStarted() && !isStopRequested())) {
+            camera.search();
+            sleep(20);
+        }
+        long start = System.currentTimeMillis();
+        while(System.currentTimeMillis()-start < 5000) {
             camera.search();
             sleep(20);
         }
@@ -130,9 +135,10 @@ public class AutoRightMed extends LinearOpMode {
         new Thread(new ArmThread(threadingEnabled, armHandler)).start();
 
 
+
         //Drive Functions
         straight(1.1);
-        driveController.spin(-475);
+        driveController.spin(-490);
         while(driveController.isBusy()) {}
         armHandler.setPosition(ArmHandler.State.MEDIUM.arm, 0);
         sleep(1000);
@@ -213,13 +219,13 @@ public class AutoRightMed extends LinearOpMode {
         while(driveController.isBusy()) {}
     }
 
-    private void clawChange(boolean bool) {
-        if (bool) {
-            rightClaw.setPosition(0.8);
+    private void clawChange(boolean open) {
+        if (open) {
+            rightClaw.setPosition(1);
             leftClaw.setPosition(0);
             return;
         }
-        leftClaw.setPosition(1);
+        leftClaw.setPosition(0.5);
         rightClaw.setPosition(0.3);
     }
 }

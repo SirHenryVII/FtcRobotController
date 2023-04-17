@@ -8,7 +8,7 @@ public class ArmHandler {
     public static enum State {
         HIGH(1100,1500),
         MEDIUM(900 ,1500),
-        LOW(400,1250),
+        LOW(400,800),
         GROUND(0,500),
         START(0,0);
         public final int arm;

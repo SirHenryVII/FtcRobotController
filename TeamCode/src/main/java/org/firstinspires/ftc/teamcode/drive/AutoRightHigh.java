@@ -99,6 +99,11 @@ public class AutoRightHigh extends LinearOpMode {
             camera.search();
             sleep(20);
         }
+        long start = System.currentTimeMillis();
+        while(System.currentTimeMillis()-start < 5000) {
+            camera.search();
+            sleep(20);
+        }
         camera.camera.closeCameraDevice();
 
         double parkMult = 0;
@@ -224,13 +229,13 @@ public class AutoRightHigh extends LinearOpMode {
         while(driveController.isBusy()) {}
     }
 
-    private void clawChange(boolean bool) {
-        if (bool) {
-            rightClaw.setPosition(0.8);
+    private void clawChange(boolean open) {
+        if (open) {
+            rightClaw.setPosition(1);
             leftClaw.setPosition(0);
             return;
         }
-        leftClaw.setPosition(1);
+        leftClaw.setPosition(0.5);
         rightClaw.setPosition(0.3);
     }
 }
